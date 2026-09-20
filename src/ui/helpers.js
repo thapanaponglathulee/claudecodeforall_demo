@@ -44,4 +44,8 @@ export function qtyHtml(dish, qty) {
     '<button type="button" class="qty-btn" data-inc="' + esc(dish.slug) + '" aria-label="เพิ่ม ' + esc(dish.name) + '">+</button>';
 }
 
-
+/* Hero Overlay Label — tracked uppercase 14px เป็น motif เดียวที่ระบบนี้ใช้ซ้ำ
+ * เปิดหัวทุกหมวดด้วยคำถอดอังกฤษ ส่วนชื่อไทยอยู่ในหัวข้อถัดลงมา */
+export function labelHtml(cat) {
+  return '<p class="label">' + esc(cat.word.join(' ')) + '</p>';
+}

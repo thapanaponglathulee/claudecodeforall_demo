@@ -7,39 +7,48 @@
   <meta name="description" content="หน้าดูเมนูและประมาณราคาของร้านช้อนทอง ข้าวแกงเมืองทองธานี กดเลือกจานที่อยากกินแล้วดูยอดรวมก่อนไปสั่งจริง">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400&family=Noto+Sans+Thai:wght@400&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Azeret+Mono:wght@400&family=Noto+Sans+Thai:wght@400;500&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Announcement Bar — chrome ถาวรของระบบ ปิดไม่ได้ -->
-  <p class="announce" id="announce"></p>
-
-  <!-- Primary Navigation — สามโซน ลอยบนภาพ hero ไม่มีพื้นหลัง -->
+  <!-- Transparent Top Nav — ลอยอยู่บนภาพ hero แล้วกลายเป็นแถบขาวเมื่อเลื่อนพ้น -->
   <nav class="nav" id="nav" aria-label="ส่วนหัว">
-    <a class="nav-link" href="#menu-heading">เมนู</a>
+    <ul class="nav-links" id="nav-list"></ul>
+
     <a class="wordmark" href="#top">ช้อนทอง</a>
-    <span class="nav-utils">
-      <a class="nav-link" href="#shop-heading">ข้อมูลร้าน</a>
-      <a class="nav-link" id="order-link" href="#" target="_blank" rel="noopener noreferrer">สั่งจริง</a>
-      <a class="nav-link" href="#order-bar" id="bag-link">ตะกร้า (<span id="bag-count">0</span>)</a>
-    </span>
+
+    <div class="nav-right">
+      <span class="hours" id="hours">
+        <span class="dot" id="hours-dot" aria-hidden="true"></span>
+        <span id="hours-text"></span>
+      </span>
+      <a class="btn" id="order-link" href="#" target="_blank" rel="noopener noreferrer">สั่งจริงที่ LINE MAN</a>
+    </div>
   </nav>
 
-  <!-- Hero Image Plate — เต็มความกว้างจอ ไม่มีกรอบ ไม่มีชั้นสีทับ -->
   <header class="hero" id="top">
     <img class="hero-photo" id="hero-photo" alt="" decoding="async" fetchpriority="high">
-    <p class="hero-tag">ช้อนทอง ข้าวแกงเมืองทองธานี</p>
+
+    <div class="hero-text">
+      <p class="label label--on-photo">ข้าวแกงเมืองทองธานี</p>
+      <h1 class="display">ช้อนทอง</h1>
+      <p class="hero-sub">ข้าวแกงรสมือแม่ ปรุงสดใหม่ทุกวัน</p>
+      <a class="btn btn--on-photo" href="#menu-heading">ดูเมนูทั้งหมด</a>
+    </div>
   </header>
 
   <main>
-    <!-- เห็นข้อความนี้เมื่อไหร่แปลว่าสคริปต์ไม่ได้รัน main.js จะเอาออกเองเมื่อบูตสำเร็จ -->
+    <!-- เห็นข้อความนี้เมื่อไหร่แปลว่าสคริปต์ไม่ได้รัน main.js จะเอาออกเองเมื่อบูตสำเร็จ
+         อาการเวลาเปิดผิดวิธีคือ CSS ทำงานแต่ JS ไม่รัน หน้าจึงดูครบแต่ไม่มีรูปและไม่มีเมนู -->
     <div class="boot-warning" id="boot-warning">
-      <p>หน้านี้ยังไม่ได้เริ่มทำงาน รูปและเมนูจึงไม่ขึ้น</p>
-      <p>เปิดเว็บนี้ด้วย <code>npm run dev</code> หรือเปิดไฟล์ใน <code>dist/</code> ที่ได้จาก <code>npm run build</code></p>
-      <p>เปิด <code>index.html</code> ตรง ๆ จากโฟลเดอร์โปรเจกต์ใช้ไม่ได้ เพราะเบราว์เซอร์แปลง import ของ Redux Toolkit เองไม่ได้</p>
+      <p class="label">หน้านี้ยังไม่ได้เริ่มทำงาน</p>
+      <p>รูปและเมนูจึงไม่ขึ้น เปิดเว็บนี้ด้วย <code>npm run dev</code>
+         หรือ <code>npm run preview</code></p>
+      <p>เปิด <code>index.html</code> ตรง ๆ จากโฟลเดอร์ใช้ไม่ได้ เพราะเบราว์เซอร์แปลง
+         import ของ Redux Toolkit เองไม่ได้ และบล็อก ES module บน <code>file://</code></p>
     </div>
 
-    <section class="strip controls" aria-labelledby="controls-heading">
+    <section class="controls" aria-labelledby="controls-heading">
       <h2 id="controls-heading" class="visually-hidden">ค้นหาและกรองเมนู</h2>
 
       <div class="search-row">
@@ -58,21 +67,26 @@
     </section>
 
     <section class="menu-section" aria-labelledby="menu-heading">
-      <div class="strip section-head">
-        <h2 id="menu-heading" class="label">รายการเมนู</h2>
+      <div class="section-head">
+        <p class="label">รายการเมนู</p>
+        <h2 id="menu-heading" class="heading">ทุกจานที่ร้านทำ</h2>
         <p class="result-count" id="result-count" aria-live="polite"></p>
       </div>
 
       <div id="menu"></div>
-      <p class="strip empty" id="empty" hidden></p>
+      <p class="empty" id="empty" hidden></p>
     </section>
 
+    <!-- Monospace Spec Callout — มีได้ครั้งเดียวทั้งหน้า ตามระบบ -->
+    <p class="spec">06:00—16:00 · DELIVERY 17:30 · ฿5—฿100 · 48 ITEMS</p>
+
     <section class="shop" aria-labelledby="shop-heading">
-      <div class="strip section-head">
-        <h2 id="shop-heading" class="label">ข้อมูลร้าน</h2>
+      <div class="section-head">
+        <p class="label">ข้อมูลร้าน</p>
+        <h2 id="shop-heading" class="heading">มาที่ร้านหรือสั่งเดลิเวอรี่</h2>
       </div>
 
-      <dl class="strip shop-facts">
+      <dl class="shop-facts">
         <dt>ที่อยู่</dt>
         <dd>
           8/31 ถนนป๊อปปูล่า โมริคอนโด บ้านใหม่ ปากเกร็ด นนทบุรี 11120
@@ -92,18 +106,20 @@
   </main>
 
   <div class="order-bar" id="order-bar" hidden>
-    <button type="button" class="order-toggle" id="order-toggle" aria-expanded="false" aria-controls="order-panel">
-      <span class="order-count" id="order-count">0</span>
-      <span class="order-label">รายการที่เลือก</span>
-      <span class="order-total" id="order-total">฿0</span>
-      <span class="order-caret" aria-hidden="true">▾</span>
-    </button>
+    <div class="order-inner">
+      <button type="button" class="order-toggle" id="order-toggle" aria-expanded="false" aria-controls="order-panel">
+        <span class="order-count" id="order-count">0</span>
+        <span class="order-label">รายการที่เลือก</span>
+        <span class="order-total" id="order-total">฿0</span>
+        <span class="order-caret" aria-hidden="true">▾</span>
+      </button>
 
-    <div class="order-panel" id="order-panel" hidden>
-      <ul class="order-list" id="order-list"></ul>
-      <div class="order-actions">
-        <button type="button" class="btn" id="order-clear">ล้างทั้งหมด</button>
-        <a class="btn" id="order-link-2" href="#" target="_blank" rel="noopener noreferrer">ไปสั่งจริงที่ LINE MAN</a>
+      <div class="order-panel" id="order-panel" hidden>
+        <ul class="order-list" id="order-list"></ul>
+        <div class="order-actions">
+          <button type="button" class="btn" id="order-clear">ล้างทั้งหมด</button>
+          <a class="btn" id="order-link-2" href="#" target="_blank" rel="noopener noreferrer">ไปสั่งจริงที่ LINE MAN</a>
+        </div>
       </div>
     </div>
   </div>
@@ -124,12 +140,21 @@
     </div>
   </dialog>
 
-  <footer class="site-footer strip">
-    <p class="footer-mark">ช้อนทอง</p>
-    <p class="footer-fine">
-      หน้านี้ทำขึ้นเพื่อฝึกเขียนโค้ด ไม่ใช่หน้าสั่งอาหารของร้าน กดปุ่มในหน้านี้ไม่ได้ส่งออเดอร์ไปที่ไหน
-      <span id="footer-note"></span>
-    </p>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p class="footer-mark">ช้อนทอง</p>
+
+      <ul class="footer-links">
+        <li><a href="#top">กลับขึ้นบน</a></li>
+        <li><a href="#menu-heading">เมนู</a></li>
+        <li><a href="#shop-heading">ข้อมูลร้าน</a></li>
+      </ul>
+
+      <p class="footer-fine">
+        หน้านี้ทำขึ้นเพื่อฝึกเขียนโค้ด ไม่ใช่หน้าสั่งอาหารของร้าน กดปุ่มในหน้านี้ไม่ได้ส่งออเดอร์ไปที่ไหน
+        <span id="footer-note"></span>
+      </p>
+    </div>
   </footer>
 
   <script type="module" src="./src/main.js"></script>

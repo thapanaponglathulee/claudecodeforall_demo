@@ -2,7 +2,7 @@ import { store } from './store/index.js';
 import { els } from './ui/dom.js';
 import {
   renderMenu, renderCard, renderOrder, renderPreview, renderPreviewQty,
-  renderChips, syncChips, syncNavLight, renderHours, renderShop, renderBagCount,
+  renderChips, syncChips, renderNav, syncNavSolid, renderHours, renderShop,
 } from './ui/render.js';
 
 import {
@@ -63,7 +63,6 @@ function sync() {
   const orderSignature = count + '/' + total + '/' + panelOpen;
   if (orderSignature !== prev.orderSignature) {
     renderOrder(selectOrderLines(state), count, total, panelOpen);
-    renderBagCount(count);
   }
 
   if (previewSlug !== prev.previewSlug) {
@@ -147,10 +146,10 @@ els.orderList.addEventListener('click', (event) => {
 
 els.orderClear.addEventListener('click', () => store.dispatch(clearOrder()));
 
-/* ตัวอักษรบน nav สลับดำ/ขาวตามความสว่างของพื้นหลังที่อยู่ข้างหลังมันจริง ๆ
+/* แถบ nav ลอยบนภาพ hero จนเลื่อนพ้นแล้วจึงกลายเป็นแถบขาว
  * passive: true เพราะไม่ได้ preventDefault จะได้ไม่ขวางการเลื่อน */
-window.addEventListener('scroll', syncNavLight, { passive: true });
-window.addEventListener('resize', syncNavLight);
+window.addEventListener('scroll', syncNavSolid, { passive: true });
+window.addEventListener('resize', syncNavSolid);
 
 /* ===== เริ่มต้น ===== */
 
@@ -159,7 +158,8 @@ els.bootWarning.remove();
 
 renderHours();
 renderShop();
-syncNavLight();
+renderNav();
+syncNavSolid();
 renderChips(selectActiveCategory(store.getState()));
 sync();
 
@@ -177,7 +177,6 @@ renderOrder(
   selectOrderTotal(first),
   selectPanelOpen(first)
 );
-renderBagCount(selectOrderCount(first));
 
 /* หน้าเปิดค้างไว้ข้ามช่วงเปิด-ปิดได้ ป้ายบอกสถานะจึงต้องตามเวลาจริง */
 setInterval(renderHours, 60 * 1000);

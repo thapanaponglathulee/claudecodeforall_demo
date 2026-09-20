@@ -1,39 +1,71 @@
 /* ช้อนทอง — หน้าดูเมนูและคิดราคา
  *
- * หน้าตาทั้งหมดอิง DESIGN_2.md (entire studios style reference)
- * หลักที่ห้ามพัง:
- *   พื้น bone #e7ecea เท่านั้น ห้ามเทาเย็นแบบ SaaS
- *   Space Mono 400 อย่างเดียว และมีแค่ 12px กับ 16px ห้ามขนาดอื่น ห้ามตัวหนา
- *   มุมตรง 0px ทุกอย่าง ทั้งรูป การ์ด ปุ่ม และ tag
- *   ไม่มีเงา ไม่มี gradient ไม่มีสีอื่นนอกจากดำ/ขาว/bone
- *   spacing หยิบจาก 6 12 16 18 20 เท่านั้น ห้าม 24 32 40
- *   ลำดับความสำคัญมาจากที่ว่างและตัวพิมพ์ใหญ่ ไม่ใช่จากขนาดหรือน้ำหนักตัวอักษร
+ * หน้าตาทั้งหมดอิง DESIGN_3.md (Stykka style reference)
+ * หลักที่ห้ามพัง: ขาวกับดำเท่านั้น ไม่มีสีเน้นเลย · ไม่มีเงา ใช้เส้น 1px แทน
+ * ปุ่มมีแบบเดียวคือเส้นขอบ hover แล้วกลับเป็นพื้นดำ
+ * รูปภาพมุมตรง 0px เสมอ · 16px สงวนไว้ให้พื้นผิวที่มีตัวอักษรเท่านั้น
  */
 
 :root {
-  --color-bone: #e7ecea;
-  --color-ink: #000000;
-  --color-paper-white: #ffffff;
+  /* Colors — ระบบนี้ไม่มีสีที่สาม */
+  --color-press-black: #000000;
+  --color-gallery-white: #ffffff;
+  --color-plate-gray: #b8b8b8;
 
-  /* Space Mono ไม่มีสระและวรรณยุกต์ไทย จึงต้องมีตัวสำรองไทยต่อท้าย
-   * ไม่ใช่การเพิ่มฟอนต์ที่สอง แต่เป็นข้อจำกัดของชุดอักขระ */
-  --font-space-mono: 'Space Mono', 'Noto Sans Thai', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* Typography — Inter สำหรับละติน, Noto Sans Thai สำหรับไทย
+   * Inter ไม่มีสระและวรรณยุกต์ไทย เบราว์เซอร์จะหล่นไปใช้ตัวถัดไปเองต่ออักขระ */
+  --font-inter: 'Inter', 'Noto Sans Thai', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-azeret-mono: 'Azeret Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-system-ui: system-ui, -apple-system, "Segoe UI", sans-serif;
 
-  /* Type scale มีสองขั้นเท่านั้น */
-  --text-caption: 12px;
-  --leading-caption: 1.33;
+  /* Typography — Scale */
+  --text-caption: 11px;
+  --leading-caption: 1.2;
+  --tracking-caption: 0.23px;
+  --text-body-sm: 14px;
+  --leading-body-sm: 1.25;
+  --tracking-body-sm: 0.29px;
   --text-body: 16px;
   --leading-body: 1.5;
+  --tracking-body: -0.37px;
+  --text-subheading: 22px;
+  --leading-subheading: 1.2;
+  --tracking-subheading: -0.79px;
+  --text-heading-sm: 24px;
+  --leading-heading-sm: 1.2;
+  --tracking-heading-sm: -0.89px;
+  --text-heading: 30px;
+  --leading-heading: 1.1;
+  --tracking-heading: -1.2px;
+  --text-display: 46px;
+  --leading-display: 1.05;
+  --tracking-display: -1.93px;
 
-  /* Spacing — base 6px */
-  --spacing-6: 6px;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+
+  /* Spacing */
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-10: 10px;
   --spacing-12: 12px;
-  --spacing-16: 16px;
+  --spacing-15: 15px;
   --spacing-18: 18px;
   --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-30: 30px;
+  --spacing-40: 40px;
+  --spacing-50: 50px;
 
-  --element-gap: 16px;
-  --card-padding: 6px;
+  /* Layout */
+  --page-max-width: 1280px;
+  --section-gap: 80px;
+  --element-gap: 10px;
+
+  /* Border Radius — รูปภาพ 0px เสมอ */
+  --radius-buttons: 8px;
+  --radius-tags: 8px;
+  --radius-cards: 16px;
 }
 
 /* ===== พื้นฐาน ===== */
@@ -42,29 +74,25 @@
 
 body {
   margin: 0;
-  padding: 0 0 72px;
-  background: var(--color-bone);
-  color: var(--color-ink);
-  font-family: var(--font-space-mono);
-  font-size: var(--text-caption);
-  font-weight: 400;
-  line-height: var(--leading-caption);
+  padding: 0 0 96px;
+  background: var(--color-gallery-white);
+  color: var(--color-press-black);
+  font-family: var(--font-inter);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--leading-body);
+  letter-spacing: var(--tracking-body);
+  font-feature-settings: "ss01", "tnum";
   -webkit-font-smoothing: antialiased;
 }
 
-button, input { font: inherit; color: inherit; }
-
-/* ระบบนี้ไม่มีลำดับหัวข้อทางตัวอักษร ทุกอย่างคือ 12px หรือ 16px น้ำหนัก 400
- * ค่าเริ่มต้นของเบราว์เซอร์ (h1 = 32px/700) จึงต้องล้างทิ้งทั้งหมด
- * ลำดับความสำคัญมาจากที่ว่างและตัวพิมพ์ใหญ่แทน */
-h1, h2, h3, h4, h5, h6 {
-  margin: 0;
-  font-size: inherit;
-  font-weight: 400;
+main {
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  padding: 0 var(--spacing-20);
 }
 
-/* ไม่มี container กว้างสุด ภาพวิ่งเต็มจอ ส่วนตัวอักษรกั้นด้วย strip */
-.strip { padding-left: var(--spacing-16); padding-right: var(--spacing-16); }
+button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 
 .visually-hidden {
   position: absolute;
@@ -75,145 +103,268 @@ h1, h2, h3, h4, h5, h6 {
   white-space: nowrap;
 }
 
-/* ตัวพิมพ์ใหญ่คือเครื่องมือเน้นของระบบนี้ ไม่ใช่ตัวหนา */
+/* ===== ระดับตัวอักษร ===== */
+
+/* Hero Overlay Label — motif เดียวที่ใช้ซ้ำทั้งระบบ */
 .label {
   margin: 0;
-  font-size: var(--text-caption);
-  font-weight: 400;
-  line-height: var(--leading-caption);
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--leading-body-sm);
+  letter-spacing: var(--tracking-body-sm);
   text-transform: uppercase;
 }
 
-/* ===== Announcement Bar ===== */
+.label--on-photo { color: var(--color-gallery-white); }
 
-.announce {
+/* Display Headline — น้ำหนัก 400 คือลายเซ็นของระบบ ห้ามหนากว่านี้ */
+.display {
   margin: 0;
-  padding: var(--spacing-6) var(--spacing-16);
-  background: var(--color-ink);
-  color: var(--color-paper-white);
-  font-size: var(--text-caption);
-  line-height: var(--leading-caption);
-  text-align: center;
+  font-size: clamp(34px, 7vw, var(--text-display));
+  font-weight: var(--font-weight-regular);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
 }
 
-/* ===== Primary Navigation ===== */
+.heading {
+  margin: 0;
+  font-size: clamp(24px, 4vw, var(--text-heading));
+  font-weight: var(--font-weight-regular);
+  line-height: var(--leading-heading);
+  letter-spacing: var(--tracking-heading);
+}
+
+/* Monospace Spec Callout — ครั้งเดียวต่อหน้า */
+.spec {
+  max-width: var(--page-max-width);
+  margin: var(--section-gap) auto 0;
+  padding: var(--spacing-20) 0;
+  border-top: 1px solid var(--color-press-black);
+  border-bottom: 1px solid var(--color-press-black);
+  font-family: var(--font-azeret-mono);
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: -0.18px;
+}
+
+/* ===== Outlined CTA Button — ปุ่มแบบเดียวของทั้งระบบ ===== */
+
+.btn {
+  display: inline-block;
+  padding: var(--spacing-10) var(--spacing-18);
+  border: 1px solid var(--color-press-black);
+  border-radius: var(--radius-buttons);
+  background: transparent;
+  color: var(--color-press-black);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: var(--color-press-black);
+  color: var(--color-gallery-white);
+}
+
+/* ปุ่มที่วางบนภาพถ่าย ต้องเป็นขาวล้วนให้รอดจากคอนทราสต์ของรูป */
+.btn--on-photo {
+  border-color: var(--color-gallery-white);
+  color: var(--color-gallery-white);
+}
+
+.btn--on-photo:hover {
+  background: var(--color-gallery-white);
+  color: var(--color-press-black);
+}
+
+/* Inline Text Link — รู้ว่าเป็นลิงก์จากเส้นใต้อย่างเดียว ไม่เปลี่ยนสี */
+.link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ===== Transparent Top Nav ===== */
 
 .nav {
-  position: absolute;
-  top: 26px; left: 0; right: 0;
-  z-index: 40;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-12);
-  padding: var(--spacing-12) var(--spacing-16);
-  color: var(--color-paper-white);
-}
-
-/* เลื่อนพ้นภาพแล้วตัวอักษรต้องกลับเป็นดำ เพราะพื้นข้างหลังเป็น bone
- * ระบบนี้สลับสีตามความสว่างของพื้นหลัง ไม่ใช่ตามธีม */
-.nav.is-light {
   position: fixed;
-  top: 0;
-  background: var(--color-bone);
-  color: var(--color-ink);
-  border-bottom: 1px solid var(--color-ink);
+  top: 0; left: 0; right: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--spacing-20);
+  padding: var(--spacing-20);
+  color: var(--color-gallery-white);
 }
 
-.nav-link {
+/* เลื่อนพ้น hero แล้วแถบกลายเป็นส่วนหนึ่งของหน้า */
+.nav.is-solid {
+  background: var(--color-gallery-white);
+  color: var(--color-press-black);
+  border-bottom: 1px solid var(--color-press-black);
+}
+
+.nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-20);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nav-links a {
   color: inherit;
   text-decoration: none;
-  padding: 0 var(--spacing-6);
-  font-size: var(--text-caption);
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--tracking-body-sm);
+  text-transform: uppercase;
 }
 
-.nav-link:first-child { padding-left: 0; }
-
-.nav-link:hover { text-decoration: underline; }
+.nav-links a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 .wordmark {
+  justify-self: center;
   color: inherit;
   text-decoration: none;
-  font-size: var(--text-body);
-  line-height: 1;
+  font-size: var(--text-subheading);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--tracking-subheading);
   white-space: nowrap;
 }
 
-.nav-utils {
+.nav-right {
+  justify-self: end;
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: var(--spacing-20);
 }
 
-/* ===== Hero Image Plate ===== */
+.nav .btn {
+  border-color: currentColor;
+  color: inherit;
+  font-size: var(--text-body-sm);
+  padding: var(--spacing-8) var(--spacing-15);
+}
+
+.nav .btn:hover {
+  background: currentColor;
+  color: var(--color-gallery-white);
+}
+
+.nav.is-solid .btn:hover { color: var(--color-gallery-white); }
+
+.hours {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  font-size: var(--text-body-sm);
+  letter-spacing: var(--tracking-body-sm);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.dot {
+  width: 8px; height: 8px;
+  flex: none;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  background: currentColor;
+}
+
+.dot--closed { background: transparent; }
+
+/* ===== Hero Section (Full-Bleed) ===== */
 
 .hero {
   position: relative;
-  width: 100%;
-  aspect-ratio: 3 / 2;
-  max-height: 86vh;
+  height: 100vh;
+  min-height: 520px;
   overflow: hidden;
-  background: var(--color-ink);
 }
 
 .hero-photo {
+  position: absolute;
+  inset: 0;
   width: 100%; height: 100%;
   object-fit: cover;
   display: block;
+  background: var(--color-press-black);
 }
 
-/* Image Caption Tag — เครดิตมุมขวาบน ไม่ใช่ปุ่ม */
-.hero-tag {
+.hero-text {
   position: absolute;
-  top: var(--spacing-16);
-  right: var(--spacing-16);
-  margin: 0;
-  color: var(--color-paper-white);
-  font-size: var(--text-caption);
-  text-transform: uppercase;
+  left: 0; bottom: 0;
+  max-width: 640px;
+  padding: var(--spacing-40);
+  display: flex;
+  flex-direction: column;
+  gap: var(--element-gap);
+  align-items: flex-start;
+  color: var(--color-gallery-white);
 }
 
-/* ===== แจ้งเตือนตอนสคริปต์ไม่ทำงาน ===== */
+.hero-text .display { color: var(--color-gallery-white); }
+
+.hero-sub {
+  margin: 0;
+  max-width: 42ch;
+  color: var(--color-gallery-white);
+}
+
+.hero-text .btn { margin-top: var(--spacing-10); }
+
+/* ===== แจ้งเตือนตอนสคริปต์ไม่ทำงาน =====
+ * โครงสร้างมาจากเส้น 1px ตามระบบ ไม่มีสี ไม่มีเงา */
 
 .boot-warning {
-  margin: var(--spacing-20) var(--spacing-16);
-  padding: var(--spacing-16);
-  border: 1px solid var(--color-ink);
-  font-size: var(--text-caption);
-  line-height: var(--leading-body);
+  margin: var(--spacing-30) 0 0;
+  padding: var(--spacing-20);
+  border: 1px solid var(--color-press-black);
+  border-radius: var(--radius-cards);
+  font-size: var(--text-body-sm);
+  line-height: var(--leading-body-sm);
+  letter-spacing: var(--tracking-body-sm);
 }
 
-.boot-warning p { margin: 0 0 var(--spacing-6); }
+.boot-warning p { margin: 0 0 var(--spacing-10); }
 .boot-warning p:last-child { margin-bottom: 0; }
 
 .boot-warning code {
-  font-family: inherit;
-  background: var(--color-ink);
-  color: var(--color-paper-white);
-  padding: 0 var(--spacing-6);
+  font-family: var(--font-azeret-mono);
+  font-size: var(--text-caption);
+  background: var(--color-press-black);
+  color: var(--color-gallery-white);
+  padding: 2px var(--spacing-8);
 }
 
 /* ===== ค้นหาและตัวกรอง ===== */
 
 .controls {
-  padding-top: var(--spacing-20);
-  padding-bottom: var(--spacing-20);
+  padding: var(--spacing-30) 0;
+  border-bottom: 1px solid var(--color-press-black);
 }
 
 .search-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--spacing-12) var(--spacing-20);
+  gap: var(--spacing-15) var(--spacing-30);
 }
 
 .search {
-  flex: 1 1 260px;
+  flex: 1 1 280px;
   display: flex;
   align-items: center;
-  gap: var(--spacing-6);
-  padding: var(--spacing-6) var(--spacing-12);
-  border: 1px solid var(--color-ink);
+  gap: var(--spacing-10);
+  padding: var(--spacing-10) var(--spacing-15);
+  border: 1px solid var(--color-press-black);
+  border-radius: var(--radius-buttons);
 }
 
 .search input {
@@ -225,14 +376,14 @@ h1, h2, h3, h4, h5, h6 {
   outline: none;
 }
 
-.search input::placeholder { color: var(--color-ink); opacity: .6; }
+.search input::placeholder { color: var(--color-press-black); opacity: .55; }
 .search input::-webkit-search-cancel-button { display: none; }
 
 .search-clear {
   border: 0;
   background: none;
   cursor: pointer;
-  font-size: var(--text-body);
+  font-size: 20px;
   line-height: 1;
   padding: 0;
 }
@@ -240,9 +391,11 @@ h1, h2, h3, h4, h5, h6 {
 .switch {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-6);
+  gap: var(--spacing-10);
   cursor: pointer;
   user-select: none;
+  font-size: var(--text-body-sm);
+  letter-spacing: var(--tracking-body-sm);
   text-transform: uppercase;
 }
 
@@ -253,93 +406,109 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .switch-box {
-  width: 12px; height: 12px;
+  width: 16px; height: 16px;
   flex: none;
-  border: 1px solid var(--color-ink);
+  border: 1px solid var(--color-press-black);
   position: relative;
 }
 
-.switch input:checked + .switch-box { background: var(--color-ink); }
+.switch input:checked + .switch-box::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  background: var(--color-press-black);
+}
 
 .switch input:focus-visible + .switch-box {
-  outline: 1px solid var(--color-ink);
+  outline: 1px solid var(--color-press-black);
   outline-offset: 2px;
 }
 
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-6);
-  margin-top: var(--spacing-16);
+  gap: var(--element-gap);
+  margin-top: var(--spacing-20);
 }
 
-/* Button (filled black) — ปุ่มของระบบนี้ถมดำ ไม่ใช่เส้นขอบ */
 .chip-btn {
-  padding: var(--spacing-6) var(--spacing-12);
-  border: 1px solid var(--color-ink);
+  padding: var(--spacing-8) var(--spacing-15);
+  border: 1px solid var(--color-press-black);
+  border-radius: var(--radius-tags);
   background: transparent;
-  color: var(--color-ink);
-  font-size: var(--text-caption);
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--tracking-body-sm);
   text-transform: uppercase;
   cursor: pointer;
   white-space: nowrap;
 }
 
-.chip-btn[aria-pressed="true"],
-.chip-btn:hover {
-  background: var(--color-ink);
-  color: var(--color-paper-white);
+.chip-btn:hover { background: var(--color-press-black); color: var(--color-gallery-white); }
+
+/* หมวดที่เลือกอยู่ใช้การกลับสีพื้น ไม่ใช่สีเน้น เพราะระบบนี้ไม่มีสีที่สาม */
+.chip-btn[aria-pressed="true"] {
+  background: var(--color-press-black);
+  color: var(--color-gallery-white);
 }
 
-/* ===== รายการเมนู ===== */
+/* ===== Section Header Block ===== */
 
 .section-head {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--spacing-12);
-  padding-top: var(--spacing-20);
-  padding-bottom: var(--spacing-12);
+  flex-direction: column;
+  gap: var(--spacing-20);
+  margin: var(--section-gap) 0 var(--spacing-40);
 }
 
-.result-count { margin: 0; text-transform: uppercase; }
+.result-count {
+  margin: 0;
+  font-size: var(--text-body-sm);
+  letter-spacing: var(--tracking-body-sm);
+  text-transform: uppercase;
+}
 
-.cat-block { margin-bottom: var(--spacing-20); }
+/* ===== Feature Grid ===== */
+
+.cat-block { margin-bottom: var(--section-gap); }
 
 .cat-head {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--spacing-12);
-  padding: var(--spacing-12) var(--spacing-16);
-  border-top: 1px solid var(--color-ink);
-  border-bottom: 1px solid var(--color-ink);
+  flex-direction: column;
+  gap: var(--element-gap);
+  margin-bottom: var(--spacing-24);
+  padding-bottom: var(--spacing-15);
+  border-bottom: 1px solid var(--color-press-black);
 }
 
-.cat-note { margin: 0; }
+.cat-note {
+  margin: 0;
+  max-width: 60ch;
+  font-size: var(--text-body-sm);
+  line-height: var(--leading-body-sm);
+  letter-spacing: var(--tracking-body-sm);
+}
 
-/* รูปเป็นเนื้อหาหลัก จึงวิ่งเต็มความกว้างจอ ช่องไฟแคบตามระบบ compact */
+/* Feature Grid Card — ขอบรูปคือขอบการ์ด ไม่มีพื้นผิว ไม่มีเส้นกรอบ ไม่มีเงา */
 .cards {
   list-style: none;
   margin: 0;
-  padding: var(--spacing-16);
+  padding: 0;
   display: grid;
-  gap: var(--spacing-18) var(--spacing-16);
-  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-40) var(--spacing-20);
+  grid-template-columns: 1fr;
 }
 
-@media (min-width: 700px) { .cards { grid-template-columns: repeat(3, 1fr); } }
-@media (min-width: 1100px) { .cards { grid-template-columns: repeat(4, 1fr); } }
-@media (min-width: 1600px) { .cards { grid-template-columns: repeat(5, 1fr); } }
+@media (min-width: 620px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1000px) { .cards { grid-template-columns: repeat(4, 1fr); } }
 
-/* การ์ดไม่มีพื้นผิว ไม่มีกรอบ รูปวางเปล่า ๆ บนพื้น bone */
 .card {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-6);
-  padding: var(--card-padding);
+  gap: var(--element-gap);
 }
 
+/* รูปมุมตรงเสมอ ห้ามใส่ radius ให้รูปตามระบบ */
 .thumb-btn {
   display: block;
   width: 100%;
@@ -353,67 +522,90 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   justify-content: center;
-  aspect-ratio: 3 / 2;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
-  background: var(--color-bone);
-  font-size: var(--text-body);
+  border: 1px solid var(--color-press-black);
+  font-size: 44px;
 }
+
+.card.is-picked .thumb { border-width: 3px; }
 
 .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-/* เลือกแล้วทำเครื่องหมายด้วยเส้นทึบใต้รูป ไม่ใช่สีหรือเงา */
-.card.is-picked .thumb { outline: 1px solid var(--color-ink); outline-offset: 2px; }
-
-.thumb-btn:focus-visible .thumb { outline: 1px solid var(--color-ink); outline-offset: 4px; }
+.thumb-btn:focus-visible .thumb { outline: 1px solid var(--color-press-black); outline-offset: 3px; }
 
 .card-name {
   margin: 0;
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--leading-body-sm);
+  letter-spacing: var(--tracking-body-sm);
   text-transform: uppercase;
 }
 
-.card-tag { display: block; }
+.card-tag {
+  display: block;
+  margin-top: var(--spacing-4);
+  font-size: var(--text-caption);
+  line-height: var(--leading-caption);
+  letter-spacing: var(--tracking-caption);
+}
 
-.card-tag::before { content: "— "; }
-
-.card-desc { margin: 0; }
+.card-desc {
+  margin: 0;
+  max-width: 32ch;
+  font-size: var(--text-body-sm);
+  line-height: var(--leading-body-sm);
+  letter-spacing: var(--tracking-body-sm);
+}
 
 .card-foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-6);
+  gap: var(--spacing-10);
   margin-top: auto;
-  padding-top: var(--spacing-6);
+  padding-top: var(--spacing-10);
 }
 
-.card-price { margin: 0; }
+.card-price {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
 
 .card-qty {
   display: flex;
   align-items: center;
-  gap: var(--spacing-6);
+  gap: var(--spacing-8);
 }
 
 .qty-btn {
-  min-width: 24px;
-  padding: var(--spacing-6) var(--spacing-12);
-  border: 0;
-  background: var(--color-ink);
-  color: var(--color-paper-white);
-  font-size: var(--text-caption);
-  line-height: 1;
+  min-width: 32px;
+  padding: var(--spacing-4) var(--spacing-10);
+  border: 1px solid var(--color-press-black);
+  border-radius: var(--radius-buttons);
+  background: transparent;
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
   cursor: pointer;
 }
 
-.qty-btn:hover { background: var(--color-paper-white); color: var(--color-ink); }
+.qty-btn:hover { background: var(--color-press-black); color: var(--color-gallery-white); }
 
-.qty-num { min-width: 12px; text-align: center; }
+.qty-num {
+  min-width: 16px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
 
 .empty {
-  margin: var(--spacing-20) 0;
-  padding: var(--spacing-20) var(--spacing-16);
-  border-top: 1px solid var(--color-ink);
-  border-bottom: 1px solid var(--color-ink);
+  margin: var(--spacing-40) 0;
+  padding: var(--spacing-30) 0;
+  border-top: 1px solid var(--color-press-black);
+  border-bottom: 1px solid var(--color-press-black);
+  font-size: var(--text-body-sm);
+  letter-spacing: var(--tracking-body-sm);
   text-transform: uppercase;
 }
 
@@ -422,59 +614,79 @@ h1, h2, h3, h4, h5, h6 {
 .shop-facts {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: var(--spacing-12) var(--spacing-20);
+  gap: var(--spacing-15) var(--spacing-30);
   margin: 0;
-  padding-bottom: var(--spacing-20);
+  font-size: var(--text-body-sm);
+  line-height: var(--leading-body-sm);
+  letter-spacing: var(--tracking-body-sm);
 }
 
 .shop-facts dt {
   text-transform: uppercase;
   white-space: nowrap;
+  font-weight: var(--font-weight-medium);
 }
 
 .shop-facts dd { margin: 0; }
 
-/* Text Link — ไม่มีการเปลี่ยนสี ระยะตัวอักษรของ monospace ทำหน้าที่แทน */
-.link { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
-
-/* ===== แถบ Order — Ink Band ===== */
+/* ===== แถบ Order ===== */
 
 .order-bar {
   position: fixed;
   left: 0; right: 0; bottom: 0;
   z-index: 30;
-  background: var(--color-ink);
-  color: var(--color-paper-white);
+  background: var(--color-gallery-white);
+  border-top: 1px solid var(--color-press-black);
+}
+
+.order-inner {
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  padding: 0 var(--spacing-20);
 }
 
 .order-toggle {
   display: flex;
   align-items: center;
-  gap: var(--spacing-12);
+  gap: var(--spacing-15);
   width: 100%;
-  padding: var(--spacing-12) var(--spacing-16);
+  padding: var(--spacing-15) 0;
   border: 0;
   background: none;
-  color: inherit;
   cursor: pointer;
   text-align: left;
 }
 
 .order-count {
   flex: none;
-  min-width: 20px;
-  padding: 0 var(--spacing-6);
-  border: 1px solid currentColor;
-  text-align: center;
+  min-width: 26px; height: 26px;
+  padding: 0 var(--spacing-8);
+  border: 1px solid var(--color-press-black);
+  border-radius: var(--radius-buttons);
+  font-size: var(--text-body-sm);
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.order-label { flex: 1; text-transform: uppercase; }
+.order-label {
+  flex: 1;
+  font-size: var(--text-body-sm);
+  letter-spacing: var(--tracking-body-sm);
+  text-transform: uppercase;
+}
+
+.order-total {
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+}
 
 .order-panel {
-  padding: 0 var(--spacing-16) var(--spacing-16);
+  padding-bottom: var(--spacing-20);
   max-height: 44vh;
   overflow-y: auto;
-  border-top: 1px solid var(--color-paper-white);
+  border-top: 1px solid var(--color-press-black);
 }
 
 .order-list { list-style: none; margin: 0; padding: 0; }
@@ -482,20 +694,28 @@ h1, h2, h3, h4, h5, h6 {
 .order-item {
   display: flex;
   align-items: center;
-  gap: var(--spacing-12);
-  padding: var(--spacing-6) 0;
-  border-bottom: 1px solid var(--color-paper-white);
+  gap: var(--spacing-15);
+  padding: var(--spacing-10) 0;
+  border-bottom: 1px solid var(--color-press-black);
+  font-size: var(--text-body-sm);
+  letter-spacing: var(--tracking-body-sm);
 }
 
-.order-item-qty { flex: none; min-width: 24px; }
+.order-item-qty {
+  flex: none;
+  min-width: 26px;
+  font-variant-numeric: tabular-nums;
+}
+
 .order-item-name { flex: 1; min-width: 0; }
+
+.order-item-sum { font-variant-numeric: tabular-nums; }
 
 .order-item-del {
   flex: none;
   border: 0;
   background: none;
-  color: inherit;
-  font-size: var(--text-body);
+  font-size: 18px;
   line-height: 1;
   cursor: pointer;
   padding: 0;
@@ -506,62 +726,52 @@ h1, h2, h3, h4, h5, h6 {
 .order-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-6);
-  margin-top: var(--spacing-16);
+  gap: var(--spacing-10);
+  margin-top: var(--spacing-20);
 }
 
-/* บนพื้นดำ ปุ่มถมกลับด้านเป็นขาว */
-.btn {
-  flex: 1;
-  padding: var(--spacing-6) var(--spacing-12);
-  border: 0;
-  background: var(--color-paper-white);
-  color: var(--color-ink);
-  font-size: var(--text-caption);
-  text-align: center;
-  text-decoration: none;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-
-.btn:hover { background: var(--color-bone); }
+.order-actions .btn { flex: 1; }
 
 /* ===== Preview รูปอาหาร ===== */
 
 .preview {
-  width: min(680px, calc(100vw - var(--spacing-20)));
+  width: min(720px, calc(100vw - var(--spacing-40)));
   padding: 0;
-  border: 1px solid var(--color-ink);
-  border-radius: 0;
-  background: var(--color-bone);
-  color: var(--color-ink);
+  border: 1px solid var(--color-press-black);
+  /* 16px สงวนไว้ให้พื้นผิวที่มีตัวอักษร ส่วนรูปข้างในยังมุมตรง */
+  border-radius: var(--radius-cards);
+  background: var(--color-gallery-white);
+  color: var(--color-press-black);
+  overflow: hidden;
 }
 
-.preview::backdrop { background: rgba(0, 0, 0, .82); }
+.preview::backdrop { background: rgba(0, 0, 0, .8); }
 
 .preview-inner { position: relative; }
 
 .preview-close {
   position: absolute;
-  top: 0; right: 0;
-  padding: var(--spacing-6) var(--spacing-12);
-  border: 0;
-  background: var(--color-ink);
-  color: var(--color-paper-white);
-  font-size: var(--text-body);
+  top: var(--spacing-10);
+  right: var(--spacing-10);
+  width: 34px; height: 34px;
+  border: 1px solid var(--color-press-black);
+  border-radius: var(--radius-buttons);
+  background: var(--color-gallery-white);
+  font-size: 18px;
   line-height: 1;
   cursor: pointer;
 }
 
-.preview-close:hover { background: var(--color-paper-white); color: var(--color-ink); }
+.preview-close:hover { background: var(--color-press-black); color: var(--color-gallery-white); }
 
 .preview-figure {
   display: flex;
   align-items: center;
   justify-content: center;
-  aspect-ratio: 3 / 2;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
-  font-size: var(--text-body);
+  border-bottom: 1px solid var(--color-press-black);
+  font-size: 88px;
 }
 
 .preview-figure img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -569,44 +779,89 @@ h1, h2, h3, h4, h5, h6 {
 .preview-body {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-6);
-  padding: var(--spacing-16);
+  gap: var(--element-gap);
+  padding: var(--spacing-20);
 }
 
-.preview-name { margin: 0; text-transform: uppercase; }
-.preview-desc { margin: 0; }
+.preview-name {
+  margin: 0;
+  font-size: var(--text-heading-sm);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--leading-heading-sm);
+  letter-spacing: var(--tracking-heading-sm);
+}
+
+.preview-desc {
+  margin: 0;
+  font-size: var(--text-body-sm);
+  line-height: var(--leading-body-sm);
+  letter-spacing: var(--tracking-body-sm);
+}
 
 .preview-foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-12);
-  margin-top: var(--spacing-6);
-  padding-top: var(--spacing-12);
-  border-top: 1px solid var(--color-ink);
+  gap: var(--spacing-15);
+  margin-top: var(--spacing-10);
+  padding-top: var(--spacing-15);
+  border-top: 1px solid var(--color-press-black);
 }
 
-/* ปุ่มในกล่อง preview อยู่บนพื้น bone จึงถมดำตามปกติของระบบ */
-.preview .qty-btn { background: var(--color-ink); color: var(--color-paper-white); }
-.preview .qty-btn:hover { background: var(--color-paper-white); color: var(--color-ink); }
-
-/* ===== ฟุตเตอร์ ===== */
+/* ===== Footer Block — แถบดำปิดท้าย ===== */
 
 .site-footer {
+  margin-top: var(--section-gap);
+  background: var(--color-press-black);
+  color: var(--color-gallery-white);
+}
+
+.footer-inner {
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  padding: var(--spacing-40) var(--spacing-20);
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: var(--spacing-12) var(--spacing-20);
-  padding-top: var(--spacing-20);
-  padding-bottom: var(--spacing-20);
-  border-top: 1px solid var(--color-ink);
+  gap: var(--spacing-30) var(--spacing-40);
 }
 
-.footer-mark { margin: 0; font-size: var(--text-body); }
+.footer-mark {
+  margin: 0;
+  font-size: var(--text-subheading);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--tracking-subheading);
+}
 
-.footer-fine { flex: 1 1 320px; margin: 0; }
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-20);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-body-sm);
+  letter-spacing: var(--tracking-body-sm);
+}
 
-.footer-fine span { display: block; margin-top: var(--spacing-6); }
+.footer-links a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Plate Gray อ่านได้บนพื้นดำเท่านั้น ห้ามเอาไปใช้บนพื้นขาว */
+.footer-fine {
+  flex: 1 1 320px;
+  margin: 0;
+  font-family: var(--font-system-ui);
+  font-size: 12px;
+  line-height: 1.2;
+  letter-spacing: normal;
+  color: var(--color-plate-gray);
+}
+
+.footer-fine span { display: block; margin-top: var(--spacing-8); }
 
 /* ===== เคารพผู้ใช้ที่ตั้งค่าลดการเคลื่อนไหว ===== */
 
