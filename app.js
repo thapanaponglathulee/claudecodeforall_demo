@@ -14,6 +14,10 @@
 /* ===== ที่อยู่รูปและลิงก์สั่งจริง ===== */
 
 const IMG_BASE = 'https://img.wongnai.com/p/256x256/';
+
+/* Wongnai เสิร์ฟรูปเฉพาะบางขนาดเท่านั้น 800x0 ผ่านครบทั้ง 46 รูป
+ * ส่วน 600x600 กับ 960x0 คืน 404 — อย่าเดาขนาดใหม่โดยไม่ลองยิงดูก่อน */
+const IMG_PREVIEW_BASE = 'https://img.wongnai.com/p/800x0/';
 const ORDER_URL = 'https://www.wongnai.com/delivery/businesses/3538938OX/order';
 
 /* ===== ข้อมูลร้าน =====
@@ -33,13 +37,16 @@ const SHOP = {
 
 /* ===== หมวดเมนู ===== */
 
+/* word = คำ billboard ขนาดยักษ์ประจำหมวด ใช้คำไทยถอดเป็นอักษรโรมัน เพราะ
+ * line-height 0.70 ตามสเปกทำให้สระบนกับวรรณยุกต์ของตัวไทยทับกันจนอ่านไม่ออก
+ * accent สลับ teal/yellow ไปเรื่อย ๆ — สีของคำคือตัวคั่นหมวดในระบบนี้ */
 const CATEGORIES = [
-  { key: 'rad-gaeng', label: 'ข้าวราดแกง' },
-  { key: 'kabkhao', label: 'กับข้าว' },
-  { key: 'khao', label: 'ข้าว' },
-  { key: 'namprik', label: 'น้ำพริก & ท็อปปิ้ง' },
-  { key: 'drink', label: 'เครื่องดื่ม' },
-  { key: 'dessert', label: 'ขนม' },
+  { key: 'rad-gaeng', label: 'ข้าวราดแกง', word: ['RAD', 'GAENG'], accent: 'teal' },
+  { key: 'kabkhao', label: 'กับข้าว', word: ['KAB', 'KHAO'], accent: 'yellow' },
+  { key: 'khao', label: 'ข้าว', word: ['KHAO'], accent: 'teal' },
+  { key: 'namprik', label: 'น้ำพริก & ท็อปปิ้ง', word: ['NAM', 'PRIK'], accent: 'yellow' },
+  { key: 'drink', label: 'เครื่องดื่ม', word: ['DRINKS'], accent: 'teal' },
+  { key: 'dessert', label: 'ขนม', word: ['KHANOM'], accent: 'yellow' },
 ];
 
 const CATEGORY_LABEL = Object.fromEntries(CATEGORIES.map((c) => [c.key, c.label]));
@@ -211,6 +218,8 @@ let query = '';            // คำค้นที่พิมพ์อยู�
 let activeCategory = 'all'; // ชิปหมวดที่เลือก เลือกได้ทีละหนึ่ง
 let recOnly = false;        // สวิตช์ "เฉพาะเมนูแนะนำ"
 let panelOpen = false;      // แผงรายละเอียดตะกร้าเปิดอยู่หรือไม่
+let navOpen = false;        // รายการลัดไปแต่ละหมวดเปิดอยู่หรือไม่
+let previewSlug = null;     // เมนูที่กำลังเปิดดูรูปใหญ่ ไม่เปิดอยู่ = null
 
 const els = {
   search: document.getElementById('search'),
@@ -228,6 +237,16 @@ const els = {
   orderTotal: document.getElementById('order-total'),
   orderClear: document.getElementById('order-clear'),
   orderLink: document.getElementById('order-link'),
+  navToggle: document.getElementById('nav-toggle'),
+  navList: document.getElementById('nav-list'),
+  preview: document.getElementById('preview'),
+  previewClose: document.getElementById('preview-close'),
+  previewFigure: document.getElementById('preview-figure'),
+  previewTag: document.getElementById('preview-tag'),
+  previewName: document.getElementById('preview-name'),
+  previewDesc: document.getElementById('preview-desc'),
+  previewPrice: document.getElementById('preview-price'),
+  previewQty: document.getElementById('preview-qty'),
   hoursText: document.getElementById('hours-text'),
   hoursDot: document.getElementById('hours-dot'),
   shopPhones: document.getElementById('shop-phones'),
@@ -296,16 +315,36 @@ function matchesFilters(dish) {
 
 /* ===== การ์ดเมนู ===== */
 
+function emojiFor(dish) {
+  return FALLBACK_EMOJI[dish.cat] || '🍽️';
+}
+
+/* รูปลิงก์ข้ามโดเมน ถ้าวันหนึ่งเจ้าของย้ายไฟล์ ต้องไม่เหลือกรอบรูปแตกค้างไว้
+ * base ต่างกันระหว่างการ์ด (256x256) กับ preview (800x0) */
+function imgHtml(dish, base, lazy) {
+  return '<img src="' + esc(base + dish.img) + '" alt=""' +
+    (lazy ? ' loading="lazy"' : '') + ' decoding="async"' +
+    ' data-fallback="' + emojiFor(dish) + '">';
+}
+
 function thumbHtml(dish) {
-  const emoji = FALLBACK_EMOJI[dish.cat] || '🍽️';
-  if (!dish.img) {
-    return '<span class="thumb thumb--empty" aria-hidden="true">' + emoji + '</span>';
-  }
-  // รูปลิงก์ข้ามโดเมน ถ้าวันหนึ่งเจ้าของย้ายไฟล์ ต้องไม่เหลือกรอบรูปแตกค้างไว้
-  return '<span class="thumb" aria-hidden="true">' +
-    '<img src="' + esc(IMG_BASE + dish.img) + '" alt="" loading="lazy" decoding="async"' +
-    ' width="96" height="96" data-fallback="' + emoji + '">' +
-    '</span>';
+  const inner = dish.img
+    ? imgHtml(dish, IMG_BASE, true)
+    : emojiFor(dish);
+  // รูปกดดูขนาดใหญ่ได้ จึงต้องเป็นปุ่มจริงเพื่อให้ใช้คีย์บอร์ดได้ด้วย
+  return '<button type="button" class="thumb-btn" data-preview="' + esc(dish.slug) + '"' +
+    ' aria-label="ดูรูป ' + esc(dish.name) + ' ขนาดใหญ่">' +
+    '<span class="thumb" aria-hidden="true">' + inner + '</span>' +
+  '</button>';
+}
+
+function qtyHtml(dish) {
+  const qty = qtyOf(dish.slug);
+  return (qty > 0
+      ? '<button type="button" class="qty-btn" data-dec="' + esc(dish.slug) + '" aria-label="ลด ' + esc(dish.name) + '">−</button>' +
+        '<span class="qty-num" aria-label="จำนวน ' + qty + '">' + qty + '</span>'
+      : '') +
+    '<button type="button" class="qty-btn" data-inc="' + esc(dish.slug) + '" aria-label="เพิ่ม ' + esc(dish.name) + '">+</button>';
 }
 
 function cardHtml(dish) {
@@ -313,29 +352,33 @@ function cardHtml(dish) {
   const desc = cleanDesc(dish);
   return '<li class="card' + (qty > 0 ? ' is-picked' : '') + '" data-slug="' + esc(dish.slug) + '">' +
     thumbHtml(dish) +
-    '<div class="card-body">' +
-      '<p class="card-name">' + esc(dish.name) +
-        (dish.rec ? ' <span class="badge-rec">แนะนำ</span>' : '') +
-      '</p>' +
-      (desc ? '<p class="card-desc">' + esc(desc) + '</p>' : '') +
+    '<p class="card-name">' + esc(dish.name) +
+      (dish.rec ? '<span class="card-tag">เมนูแนะนำ</span>' : '') +
+    '</p>' +
+    (desc ? '<p class="card-desc">' + esc(desc) + '</p>' : '') +
+    '<div class="card-foot">' +
       '<p class="card-price">' + baht(dish.price) + '</p>' +
-    '</div>' +
-    '<div class="card-qty">' +
-      (qty > 0
-        ? '<button type="button" class="qty-btn" data-dec="' + esc(dish.slug) + '" aria-label="ลด ' + esc(dish.name) + '">−</button>' +
-          '<span class="qty-num" aria-label="จำนวน ' + qty + '">' + qty + '</span>'
-        : '') +
-      '<button type="button" class="qty-btn qty-add" data-inc="' + esc(dish.slug) + '" aria-label="เพิ่ม ' + esc(dish.name) + '">+</button>' +
+      '<div class="card-qty">' + qtyHtml(dish) + '</div>' +
     '</div>' +
   '</li>';
 }
 
+/* Billboard Display Headline — คำยักษ์ประจำหมวด สีสลับ teal/yellow
+ * ตัวอักษรทำหน้าที่เป็นตัวคั่นหมวดแทนเส้นหรือแถบสี */
+function billboardHtml(cat, extraClass) {
+  return '<p class="billboard billboard--' + cat.accent + ' ' + extraClass + '" aria-hidden="true">' +
+    cat.word.map((w) => '<span>' + esc(w) + '</span>').join('') +
+  '</p>';
+}
+
 function sectionHtml(cat, dishes) {
-  const note = CATEGORY_NOTE[cat];
-  return '<section class="cat-block">' +
-    '<h3 class="cat-title">' + esc(CATEGORY_LABEL[cat]) +
-      ' <span class="cat-count">' + dishes.length + ' รายการ</span></h3>' +
-    (note ? '<p class="cat-note">' + esc(note) + '</p>' : '') +
+  const note = CATEGORY_NOTE[cat.key];
+  return '<section class="cat-block" id="cat-' + esc(cat.key) + '">' +
+    '<div class="cat-head">' +
+      billboardHtml(cat, 'cat-billboard') +
+      '<h3 class="tag">' + esc(cat.label) + ' · ' + dishes.length + ' รายการ</h3>' +
+      (note ? '<p class="cat-note">' + esc(note) + '</p>' : '') +
+    '</div>' +
     '<ul class="cards">' + dishes.map(cardHtml).join('') + '</ul>' +
   '</section>';
 }
@@ -363,7 +406,7 @@ function renderMenu() {
   const blocks = [];
   for (const cat of CATEGORIES) {
     const dishes = shown.filter((d) => d.cat === cat.key);
-    if (dishes.length > 0) blocks.push(sectionHtml(cat.key, dishes));
+    if (dishes.length > 0) blocks.push(sectionHtml(cat, dishes));
   }
   els.menu.innerHTML = blocks.join('');
 }
@@ -408,6 +451,7 @@ function changeQty(slug, delta) {
   else order.set(slug, Math.min(next, MAX_QTY));
   saveOrder();
   renderCard(slug);
+  renderPreviewQty();
   renderOrder();
 }
 
@@ -416,7 +460,59 @@ function removeFromOrder(slug) {
   order.delete(slug);
   saveOrder();
   renderCard(slug);
+  renderPreviewQty();
   renderOrder();
+}
+
+/* ===== Preview รูปอาหาร ===== */
+
+function renderPreviewQty() {
+  if (!previewSlug) return;
+  els.previewQty.innerHTML = qtyHtml(BY_SLUG.get(previewSlug));
+}
+
+function openPreview(slug) {
+  const dish = BY_SLUG.get(slug);
+  if (!dish) return;
+
+  previewSlug = slug;
+  els.previewFigure.innerHTML = dish.img
+    ? imgHtml(dish, IMG_PREVIEW_BASE, false)
+    : emojiFor(dish);
+  els.previewTag.textContent = CATEGORY_LABEL[dish.cat] + (dish.rec ? ' · เมนูแนะนำ' : '');
+  els.previewName.textContent = dish.name;
+
+  const desc = cleanDesc(dish);
+  els.previewDesc.textContent = desc;
+  els.previewDesc.hidden = desc === '';
+
+  els.previewPrice.textContent = baht(dish.price);
+  renderPreviewQty();
+
+  // showModal ดัก Esc และกันโฟกัสหลุดออกนอกกล่องให้เอง
+  els.preview.showModal();
+}
+
+function closePreview() {
+  previewSlug = null;
+  // ปล่อยให้ <img> หยุดโหลดและคืนหน่วยความจำ แทนที่จะค้างรูปเดิมไว้
+  els.previewFigure.innerHTML = '';
+  if (els.preview.open) els.preview.close();
+}
+
+/* ===== รายการลัดไปแต่ละหมวด ===== */
+
+function renderNav() {
+  els.navList.innerHTML = CATEGORIES.map((c) =>
+    '<li><a href="#cat-' + esc(c.key) + '" data-nav>' + esc(c.word.join(' ')) +
+    '<span class="nav-list-th">' + esc(c.label) + '</span></a></li>'
+  ).join('');
+}
+
+function setNavOpen(open) {
+  navOpen = open;
+  els.navList.hidden = !open;
+  els.navToggle.setAttribute('aria-expanded', String(open));
 }
 
 /* ===== ชิปหมวด ===== */
@@ -444,18 +540,59 @@ els.menu.addEventListener('click', (event) => {
   const inc = event.target.closest('[data-inc]');
   if (inc) { changeQty(inc.dataset.inc, 1); return; }
   const dec = event.target.closest('[data-dec]');
+  if (dec) { changeQty(dec.dataset.dec, -1); return; }
+  const preview = event.target.closest('[data-preview]');
+  if (preview) openPreview(preview.dataset.preview);
+});
+
+els.previewQty.addEventListener('click', (event) => {
+  const inc = event.target.closest('[data-inc]');
+  if (inc) { changeQty(inc.dataset.inc, 1); return; }
+  const dec = event.target.closest('[data-dec]');
   if (dec) changeQty(dec.dataset.dec, -1);
+});
+
+els.previewClose.addEventListener('click', closePreview);
+
+/* กดพื้นที่นอกกล่อง (::backdrop) ให้ปิด — event.target เป็นตัว <dialog> เองเมื่อกดโดน backdrop */
+els.preview.addEventListener('click', (event) => {
+  if (event.target === els.preview) closePreview();
+});
+
+/* ปิดด้วย Esc ผ่าน showModal ก็ยังต้องล้างสถานะของเราเอง */
+els.preview.addEventListener('close', () => {
+  previewSlug = null;
+  els.previewFigure.innerHTML = '';
 });
 
 /* รูปจาก Wongnai อาจหายหรือถูกบล็อก — สลับไปใช้ emoji แทนกรอบรูปแตก
  * error ของ <img> ไม่ bubble จึงต้องดักตอน capture */
-els.menu.addEventListener('error', (event) => {
+function swapToFallback(event) {
   const img = event.target;
-  if (!img.matches || !img.matches('.thumb img')) return;
-  const span = img.parentElement;
-  span.classList.add('thumb--empty');
-  span.textContent = img.dataset.fallback || '🍽️';
-}, true);
+  if (!img.matches || !img.matches('.thumb img, .preview-figure img')) return;
+  const box = img.parentElement;
+  box.textContent = img.dataset.fallback || '🍽️';
+}
+
+els.menu.addEventListener('error', swapToFallback, true);
+els.preview.addEventListener('error', swapToFallback, true);
+
+els.navToggle.addEventListener('click', () => setNavOpen(!navOpen));
+
+els.navList.addEventListener('click', (event) => {
+  if (event.target.closest('[data-nav]')) setNavOpen(false);
+});
+
+/* กดที่อื่นนอกเมนูลัดให้ปิด ไม่งั้นมันค้างเกะกะอยู่มุมจอ */
+document.addEventListener('click', (event) => {
+  if (!navOpen) return;
+  if (event.target.closest('.nav-menu')) return;
+  setNavOpen(false);
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && navOpen) setNavOpen(false);
+});
 
 els.search.addEventListener('input', () => {
   query = els.search.value.trim();
@@ -539,6 +676,7 @@ els.footerNote.textContent =
 warnOnDescLeftovers();
 renderHours();
 renderShop();
+renderNav();
 renderChips();
 renderMenu();
 renderOrder();
