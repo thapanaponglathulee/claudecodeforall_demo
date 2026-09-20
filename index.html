@@ -7,48 +7,34 @@
   <meta name="description" content="หน้าดูเมนูและประมาณราคาของร้านช้อนทอง ข้าวแกงเมืองทองธานี กดเลือกจานที่อยากกินแล้วดูยอดรวมก่อนไปสั่งจริง">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,400;0,500;0,900;1,900&family=Noto+Sans+Thai:wght@400;500;900&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Azeret+Mono:wght@400&family=Noto+Sans+Thai:wght@400;500&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <nav class="nav" aria-label="ส่วนหัว">
-    <a class="wordmark" href="#top">
-      <span class="wordmark-name">ช้อนทอง</span>
-      <span class="wordmark-sub">ข้าวแกงเมืองทองธานี</span>
-    </a>
+  <!-- Transparent Top Nav — ลอยอยู่บนภาพ hero แล้วกลายเป็นแถบขาวเมื่อเลื่อนพ้น -->
+  <nav class="nav" id="nav" aria-label="ส่วนหัว">
+    <ul class="nav-links" id="nav-list"></ul>
 
-    <div class="nav-menu">
-      <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="nav-list">
-        <span class="nav-word">MENU</span>
-        <span class="nav-burger" aria-hidden="true"><i></i><i></i><i></i></span>
-      </button>
-      <ul class="nav-list" id="nav-list" hidden></ul>
+    <a class="wordmark" href="#top">ช้อนทอง</a>
+
+    <div class="nav-right">
+      <span class="hours" id="hours">
+        <span class="dot" id="hours-dot" aria-hidden="true"></span>
+        <span id="hours-text"></span>
+      </span>
+      <a class="btn" id="order-link" href="#" target="_blank" rel="noopener noreferrer">สั่งจริงที่ LINE MAN</a>
     </div>
   </nav>
 
   <header class="hero" id="top">
-    <div class="seal" aria-hidden="true">
-      <svg viewBox="0 0 120 120" width="120" height="120">
-        <circle cx="60" cy="60" r="59" fill="none" stroke="currentColor" stroke-width="2"></circle>
-        <path id="seal-arc" fill="none" d="M60,60 m-42,0 a42,42 0 1,1 84,0 a42,42 0 1,1 -84,0"></path>
-        <text class="seal-text"><textPath href="#seal-arc" startOffset="2%">FEATURED · เมนูแนะนำ · FEATURED · </textPath></text>
-        <circle cx="60" cy="60" r="4" fill="currentColor"></circle>
-      </svg>
+    <img class="hero-photo" id="hero-photo" alt="" decoding="async" fetchpriority="high">
+
+    <div class="hero-text">
+      <p class="label label--on-photo">ข้าวแกงเมืองทองธานี</p>
+      <h1 class="display">ช้อนทอง</h1>
+      <p class="hero-sub">ข้าวแกงรสมือแม่ ปรุงสดใหม่ทุกวัน</p>
+      <a class="btn btn--on-photo" href="#menu-heading">ดูเมนูทั้งหมด</a>
     </div>
-
-    <h1 class="visually-hidden">ช้อนทอง ข้าวแกงเมืองทองธานี — เมนูและราคา</h1>
-
-    <!-- คำ billboard เป็นงานภาพล้วน ชื่อจริงอยู่ใน h1 ข้างบนแล้ว -->
-    <p class="billboard billboard--teal hero-billboard" aria-hidden="true">
-      <span>KHAO</span><span>GAENG</span>
-    </p>
-
-    <p class="caption hero-caption">ข้าวแกงรสมือแม่ ปรุงสดใหม่ทุกวัน</p>
-
-    <p class="hours" id="hours">
-      <span class="dot" id="hours-dot" aria-hidden="true"></span>
-      <span id="hours-text"></span>
-    </p>
   </header>
 
   <main>
@@ -71,16 +57,25 @@
     </section>
 
     <section class="menu-section" aria-labelledby="menu-heading">
-      <h2 id="menu-heading" class="visually-hidden">รายการเมนู</h2>
-      <p class="result-count" id="result-count" aria-live="polite"></p>
+      <div class="section-head">
+        <p class="label">รายการเมนู</p>
+        <h2 id="menu-heading" class="heading">ทุกจานที่ร้านทำ</h2>
+        <p class="result-count" id="result-count" aria-live="polite"></p>
+      </div>
+
       <div id="menu"></div>
       <p class="empty" id="empty" hidden></p>
     </section>
 
-    <section class="shop" aria-labelledby="shop-heading">
-      <p class="billboard billboard--yellow shop-billboard" aria-hidden="true"><span>CHON</span><span>THONG</span></p>
+    <!-- Monospace Spec Callout — มีได้ครั้งเดียวทั้งหน้า ตามระบบ -->
+    <p class="spec">06:00—16:00 · DELIVERY 17:30 · ฿5—฿100 · 48 ITEMS</p>
 
-      <h2 id="shop-heading" class="tag">ข้อมูลร้าน</h2>
+    <section class="shop" aria-labelledby="shop-heading">
+      <div class="section-head">
+        <p class="label">ข้อมูลร้าน</p>
+        <h2 id="shop-heading" class="heading">มาที่ร้านหรือสั่งเดลิเวอรี่</h2>
+      </div>
+
       <dl class="shop-facts">
         <dt>ที่อยู่</dt>
         <dd>
@@ -92,10 +87,7 @@
         <dd id="shop-phones"></dd>
 
         <dt>เวลาเปิด</dt>
-        <dd>
-          ทุกวัน 06:00 – 16:00
-          <span class="caption">สั่งเดลิเวอรี่ได้ถึง 17:30</span>
-        </dd>
+        <dd>ทุกวัน 06:00 – 16:00 · สั่งเดลิเวอรี่ได้ถึง 17:30</dd>
 
         <dt>ประเภท</dt>
         <dd>อาหารไทย · ช่วงราคาต่ำกว่า 100 บาท</dd>
@@ -116,9 +108,7 @@
         <ul class="order-list" id="order-list"></ul>
         <div class="order-actions">
           <button type="button" class="btn" id="order-clear">ล้างทั้งหมด</button>
-          <a class="btn btn--pill" id="order-link" href="#" target="_blank" rel="noopener noreferrer">
-            ไปสั่งจริงที่ LINE MAN
-          </a>
+          <a class="btn" id="order-link-2" href="#" target="_blank" rel="noopener noreferrer">ไปสั่งจริงที่ LINE MAN</a>
         </div>
       </div>
     </div>
@@ -128,22 +118,33 @@
     <div class="preview-inner">
       <button type="button" class="preview-close" id="preview-close" aria-label="ปิดรูป">×</button>
       <div class="preview-figure" id="preview-figure"></div>
-      <p class="tag" id="preview-tag"></p>
-      <p class="preview-name" id="preview-name"></p>
-      <p class="preview-desc" id="preview-desc"></p>
-      <div class="preview-foot">
-        <p class="card-price" id="preview-price"></p>
-        <div class="card-qty" id="preview-qty"></div>
+      <div class="preview-body">
+        <p class="label" id="preview-tag"></p>
+        <p class="preview-name" id="preview-name"></p>
+        <p class="preview-desc" id="preview-desc"></p>
+        <div class="preview-foot">
+          <p class="card-price" id="preview-price"></p>
+          <div class="card-qty" id="preview-qty"></div>
+        </div>
       </div>
     </div>
   </dialog>
 
   <footer class="site-footer">
-    <p class="disclaimer">
-      หน้านี้ทำขึ้นเพื่อฝึกเขียนโค้ด <strong>ไม่ใช่หน้าสั่งอาหารของร้าน</strong>
-      กดปุ่มในหน้านี้ไม่ได้ส่งออเดอร์ไปที่ไหน
-    </p>
-    <p class="caption" id="footer-note"></p>
+    <div class="footer-inner">
+      <p class="footer-mark">ช้อนทอง</p>
+
+      <ul class="footer-links">
+        <li><a href="#top">กลับขึ้นบน</a></li>
+        <li><a href="#menu-heading">เมนู</a></li>
+        <li><a href="#shop-heading">ข้อมูลร้าน</a></li>
+      </ul>
+
+      <p class="footer-fine">
+        หน้านี้ทำขึ้นเพื่อฝึกเขียนโค้ด ไม่ใช่หน้าสั่งอาหารของร้าน กดปุ่มในหน้านี้ไม่ได้ส่งออเดอร์ไปที่ไหน
+        <span id="footer-note"></span>
+      </p>
+    </div>
   </footer>
 
   <script type="module" src="/src/main.js"></script>

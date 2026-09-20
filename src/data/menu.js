@@ -16,6 +16,10 @@ export const IMG_PREVIEW_BASE = 'https://img.wongnai.com/p/800x0/';
 
 export const ORDER_URL = 'https://www.wongnai.com/delivery/businesses/3538938OX/order';
 
+/* รูปหน้าร้านจาก JSON-LD ของ Wongnai ใช้เป็นภาพเต็มจอของ hero
+ * ระบบนี้ให้ภาพถ่ายทำงานด้านอารมณ์ทั้งหมด UI จึงไม่มีสีเลย */
+export const HERO_PHOTO = 'https://img.wongnai.com/p/1920x0/2025/11/08/b11109856d824eebb6f8bc4f0c78e4ca.jpg';
+
 /* ===== ข้อมูลร้าน =====
  * จาก JSON-LD ของหน้าร้านบน Wongnai
  * openHour/closeHour คือเวลาหน้าร้าน ส่วน deliveryClose คือเวลาปิดรับเดลิเวอรี่ */
@@ -30,16 +34,15 @@ export const SHOP = {
 };
 
 /* ===== หมวดเมนู =====
- * word = คำ billboard ขนาดยักษ์ประจำหมวด ใช้คำไทยถอดเป็นอักษรโรมัน เพราะ
- * line-height 0.70 ตามสเปกทำให้สระบนกับวรรณยุกต์ของตัวไทยทับกันจนอ่านไม่ออก
- * accent สลับ teal/yellow ไปเรื่อย ๆ — สีของคำคือตัวคั่นหมวดในระบบนี้ */
+ * word = คำไทยถอดเป็นอักษรโรมัน ใช้เป็น tracked uppercase label ประจำหมวด
+ * และเป็นลิงก์ใน nav ระบบนี้ไม่มีสีเน้น หมวดจึงแยกกันด้วยที่ว่างกับเส้น 1px */
 export const CATEGORIES = [
-  { key: 'rad-gaeng', label: 'ข้าวราดแกง', word: ['RAD', 'GAENG'], accent: 'teal' },
-  { key: 'kabkhao', label: 'กับข้าว', word: ['KAB', 'KHAO'], accent: 'yellow' },
-  { key: 'khao', label: 'ข้าว', word: ['KHAO'], accent: 'teal' },
-  { key: 'namprik', label: 'น้ำพริก & ท็อปปิ้ง', word: ['NAM', 'PRIK'], accent: 'yellow' },
-  { key: 'drink', label: 'เครื่องดื่ม', word: ['DRINKS'], accent: 'teal' },
-  { key: 'dessert', label: 'ขนม', word: ['KHANOM'], accent: 'yellow' },
+  { key: 'rad-gaeng', label: 'ข้าวราดแกง', word: ['RAD', 'GAENG'] },
+  { key: 'kabkhao', label: 'กับข้าว', word: ['KAB', 'KHAO'] },
+  { key: 'khao', label: 'ข้าว', word: ['KHAO'] },
+  { key: 'namprik', label: 'น้ำพริก & ท็อปปิ้ง', word: ['NAM', 'PRIK'] },
+  { key: 'drink', label: 'เครื่องดื่ม', word: ['DRINKS'] },
+  { key: 'dessert', label: 'ขนม', word: ['KHANOM'] },
 ];
 
 export const CATEGORY_LABEL = Object.fromEntries(CATEGORIES.map((c) => [c.key, c.label]));

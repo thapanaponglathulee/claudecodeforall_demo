@@ -44,10 +44,8 @@ export function qtyHtml(dish, qty) {
     '<button type="button" class="qty-btn" data-inc="' + esc(dish.slug) + '" aria-label="เพิ่ม ' + esc(dish.name) + '">+</button>';
 }
 
-/* Billboard Display Headline — คำยักษ์ประจำหมวด สีสลับ teal/yellow
- * ตัวอักษรทำหน้าที่เป็นตัวคั่นหมวดแทนเส้นหรือแถบสี และเป็นงานภาพล้วน */
-export function billboardHtml(cat, extraClass) {
-  return '<p class="billboard billboard--' + cat.accent + ' ' + extraClass + '" aria-hidden="true">' +
-    cat.word.map((w) => '<span>' + esc(w) + '</span>').join('') +
-  '</p>';
+/* Hero Overlay Label — tracked uppercase 14px เป็น motif เดียวที่ระบบนี้ใช้ซ้ำ
+ * เปิดหัวทุกหมวดด้วยคำถอดอังกฤษ ส่วนชื่อไทยอยู่ในหัวข้อถัดลงมา */
+export function labelHtml(cat) {
+  return '<p class="label">' + esc(cat.word.join(' ')) + '</p>';
 }

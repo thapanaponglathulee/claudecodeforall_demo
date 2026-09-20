@@ -1,8 +1,8 @@
 import { els } from './dom.js';
-import { esc, baht, emojiFor, imgHtml, thumbHtml, qtyHtml, billboardHtml } from './helpers.js';
+import { esc, baht, emojiFor, imgHtml, thumbHtml, qtyHtml, labelHtml } from './helpers.js';
 import {
   MENU, CATEGORIES, CATEGORY_LABEL, CATEGORY_NOTE, SHOP, BY_SLUG,
-  IMG_PREVIEW_BASE, ORDER_URL,
+  IMG_PREVIEW_BASE, ORDER_URL, HERO_PHOTO,
 } from '../data/menu.js';
 import { cleanDesc } from '../store/filtersSlice.js';
 
@@ -27,9 +27,10 @@ function sectionHtml(cat, dishes, items) {
   const note = CATEGORY_NOTE[cat.key];
   return '<section class="cat-block" id="cat-' + esc(cat.key) + '">' +
     '<div class="cat-head">' +
-      billboardHtml(cat, 'cat-billboard') +
-      '<h3 class="tag">' + esc(cat.label) + ' · ' + dishes.length + ' รายการ</h3>' +
-      (note ? '<p class="cat-note">' + esc(note) + '</p>' : '') +
+      labelHtml(cat) +
+      '<h3 class="heading">' + esc(cat.label) + '</h3>' +
+      '<p class="cat-note">' + dishes.length + ' รายการ' +
+        (note ? ' · ' + esc(note) : '') + '</p>' +
     '</div>' +
     '<ul class="cards">' +
       dishes.map((d) => cardHtml(d, items[d.slug] || 0)).join('') +
@@ -143,14 +144,15 @@ export function syncChips(activeCategory) {
 
 export function renderNav() {
   els.navList.innerHTML = CATEGORIES.map((c) =>
-    '<li><a href="#cat-' + esc(c.key) + '" data-nav>' + esc(c.word.join(' ')) +
-    '<span class="nav-list-th">' + esc(c.label) + '</span></a></li>'
+    '<li><a href="#cat-' + esc(c.key) + '">' + esc(c.word.join(' ')) + '</a></li>'
   ).join('');
 }
 
-export function syncNav(open) {
-  els.navList.hidden = !open;
-  els.navToggle.setAttribute('aria-expanded', String(open));
+/* แถบ nav ลอยอยู่บนภาพ hero จนเลื่อนพ้น แล้วกลายเป็นแถบขาวของหน้า
+ * ตัวอักษรบนภาพต้องเป็นขาวล้วน ไม่งั้นไม่รอดคอนทราสต์ของรูป */
+export function syncNavSolid() {
+  const past = window.scrollY > window.innerHeight - 80;
+  els.nav.classList.toggle('is-solid', past);
 }
 
 /* ===== ข้อมูลร้าน ===== */
@@ -180,6 +182,8 @@ export function renderShop() {
 
   els.mapLink.href = 'https://www.google.com/maps/search/?api=1&query=' + SHOP.lat + ',' + SHOP.lng;
   els.orderLink.href = ORDER_URL;
+  els.orderLink2.href = ORDER_URL;
+  els.heroPhoto.src = HERO_PHOTO;
 
   els.footerNote.textContent =
     'เมนู ' + MENU.length + ' รายการ · ราคาคัดลอกมาเมื่อ 20 ก.ย. 2026 อาจไม่ตรงกับหน้าร้านแล้ว · ' +

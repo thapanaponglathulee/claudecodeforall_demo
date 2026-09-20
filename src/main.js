@@ -2,7 +2,7 @@ import { store } from './store/index.js';
 import { els } from './ui/dom.js';
 import {
   renderMenu, renderCard, renderOrder, renderPreview, renderPreviewQty,
-  renderChips, syncChips, renderNav, syncNav, renderHours, renderShop,
+  renderChips, syncChips, renderNav, syncNavSolid, renderHours, renderShop,
 } from './ui/render.js';
 
 import {
@@ -15,8 +15,8 @@ import {
   selectVisibleMenu, selectVisibleByCategory,
 } from './store/filtersSlice.js';
 import {
-  navToggled, panelToggled, previewOpened, previewClosed,
-  selectNavOpen, selectPanelOpen, selectPreviewSlug,
+  panelToggled, previewOpened, previewClosed,
+  selectPanelOpen, selectPreviewSlug,
 } from './store/uiSlice.js';
 
 /* ===== เชื่อม store เข้ากับหน้าจอ =====
@@ -31,7 +31,6 @@ let prev = {
   groups: null,
   items: null,
   activeCategory: null,
-  navOpen: null,
   previewSlug: null,
   orderSignature: null,
 };
@@ -66,16 +65,13 @@ function sync() {
     renderOrder(selectOrderLines(state), count, total, panelOpen);
   }
 
-  const navOpen = selectNavOpen(state);
-  if (navOpen !== prev.navOpen) syncNav(navOpen);
-
   if (previewSlug !== prev.previewSlug) {
     renderPreview(previewSlug, items[previewSlug] || 0);
   } else if (previewSlug && items !== prev.items) {
     renderPreviewQty(previewSlug, items[previewSlug] || 0);
   }
 
-  prev = { groups, items, activeCategory, navOpen, previewSlug, orderSignature };
+  prev = { groups, items, activeCategory, previewSlug, orderSignature };
 }
 
 store.subscribe(sync);
@@ -150,30 +146,17 @@ els.orderList.addEventListener('click', (event) => {
 
 els.orderClear.addEventListener('click', () => store.dispatch(clearOrder()));
 
-els.navToggle.addEventListener('click', () => store.dispatch(navToggled()));
-
-els.navList.addEventListener('click', (event) => {
-  if (event.target.closest('[data-nav]')) store.dispatch(navToggled(false));
-});
-
-/* กดที่อื่นนอกเมนูลัดให้ปิด ไม่งั้นมันค้างเกะกะอยู่มุมจอ */
-document.addEventListener('click', (event) => {
-  if (!selectNavOpen(store.getState())) return;
-  if (event.target.closest('.nav-menu')) return;
-  store.dispatch(navToggled(false));
-});
-
-document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && selectNavOpen(store.getState())) {
-    store.dispatch(navToggled(false));
-  }
-});
+/* แถบ nav ลอยบนภาพ hero จนเลื่อนพ้นแล้วจึงกลายเป็นแถบขาว
+ * passive: true เพราะไม่ได้ preventDefault จะได้ไม่ขวางการเลื่อน */
+window.addEventListener('scroll', syncNavSolid, { passive: true });
+window.addEventListener('resize', syncNavSolid);
 
 /* ===== เริ่มต้น ===== */
 
 renderHours();
 renderShop();
 renderNav();
+syncNavSolid();
 renderChips(selectActiveCategory(store.getState()));
 sync();
 

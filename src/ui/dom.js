@@ -17,9 +17,11 @@ export const els = {
   orderTotal: id('order-total'),
   orderClear: id('order-clear'),
   orderLink: id('order-link'),
+  orderLink2: id('order-link-2'),
 
-  navToggle: id('nav-toggle'),
+  nav: id('nav'),
   navList: id('nav-list'),
+  heroPhoto: id('hero-photo'),
 
   preview: id('preview'),
   previewClose: id('preview-close'),
