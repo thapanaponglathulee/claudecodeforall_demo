@@ -3,53 +3,98 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>วันนี้กินอะไรดี — แนะนำอาหารไทย</title>
-  <meta name="description" content="สุ่มอาหารไทยสักจานเมื่อคิดไม่ออกว่าวันนี้จะกินอะไร และเก็บจานที่ชอบไว้ในเครื่อง">
+  <title>ช้อนทอง ข้าวแกงเมืองทองธานี — ดูเมนูและคิดราคา</title>
+  <meta name="description" content="หน้าดูเมนูและประมาณราคาของร้านช้อนทอง ข้าวแกงเมืองทองธานี กดเลือกจานที่อยากกินแล้วดูยอดรวมก่อนไปสั่งจริง">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="site-header">
-    <h1>วันนี้กินอะไรดี?</h1>
-    <p class="tagline">กดสุ่มสักจาน แล้วเก็บจานที่ชอบไว้ดูทีหลัง</p>
-    <div class="veg-strip" aria-hidden="true">
-      <img src="assets/veg/krapow.png" alt="" width="64" height="64" loading="lazy" decoding="async">
-      <img src="assets/veg/prik-kee-noo.png" alt="" width="64" height="64" loading="lazy" decoding="async">
-      <img src="assets/veg/pak-boong.png" alt="" width="64" height="64" loading="lazy" decoding="async">
-      <img src="assets/veg/ta-krai.png" alt="" width="64" height="64" loading="lazy" decoding="async">
-      <img src="assets/veg/bai-makrut.png" alt="" width="64" height="64" loading="lazy" decoding="async">
-      <img src="assets/veg/kha.png" alt="" width="64" height="64" loading="lazy" decoding="async">
-      <img src="assets/veg/makhuea-proh.png" alt="" width="64" height="64" loading="lazy" decoding="async">
-      <img src="assets/veg/pak-chee.png" alt="" width="64" height="64" loading="lazy" decoding="async">
+    <div class="header-inner">
+      <p class="eyebrow">ข้าวแกงเมืองทองธานี</p>
+      <h1>ช้อนทอง</h1>
+      <p class="tagline">เลือกจานที่อยากกิน ดูยอดรวมก่อน แล้วค่อยไปสั่งจริง</p>
+      <p class="hours" id="hours">
+        <span class="dot" id="hours-dot" aria-hidden="true"></span>
+        <span id="hours-text"></span>
+      </p>
     </div>
   </header>
 
   <main>
-    <section class="featured-section" aria-labelledby="featured-heading">
-      <h2 id="featured-heading" class="visually-hidden">จานที่แนะนำ</h2>
-      <div class="featured-card" id="featured" aria-live="polite"></div>
-      <button type="button" class="btn-random" id="random-btn">
-        <img class="btn-icon" src="assets/veg/prik-kee-noo.png" alt="" aria-hidden="true" width="24" height="24" decoding="async"> สุ่มใหม่
-      </button>
-    </section>
+    <section class="controls" aria-labelledby="controls-heading">
+      <h2 id="controls-heading" class="visually-hidden">ค้นหาและกรองเมนู</h2>
 
-    <section class="pool-section" aria-labelledby="pool-heading">
-      <h2 id="pool-heading">เมนูทั้งหมด</h2>
-
-      <div class="filters">
-        <div class="chips" id="chips" role="group" aria-label="กรองตามประเภทอาหาร"></div>
+      <div class="search-row">
+        <label class="search" for="search">
+          <span class="search-icon" aria-hidden="true">🔍</span>
+          <input type="search" id="search" placeholder="ค้นหาเมนู เช่น กะเพรา ต้มข่า คุกกี้" autocomplete="off">
+          <button type="button" class="search-clear" id="search-clear" hidden aria-label="ล้างคำค้น">×</button>
+        </label>
         <label class="switch">
-          <input type="checkbox" id="fav-only">
+          <input type="checkbox" id="rec-only">
           <span class="switch-track" aria-hidden="true"></span>
-          <span class="switch-label">เฉพาะที่ชอบ</span>
+          <span class="switch-label">เฉพาะเมนูแนะนำ</span>
         </label>
       </div>
 
-      <ul class="grid" id="grid"></ul>
+      <div class="chips" id="chips" role="group" aria-label="กรองตามหมวดเมนู"></div>
+    </section>
+
+    <section class="menu-section" aria-labelledby="menu-heading">
+      <h2 id="menu-heading" class="visually-hidden">รายการเมนู</h2>
+      <p class="result-count" id="result-count" aria-live="polite"></p>
+      <div id="menu"></div>
       <p class="empty" id="empty" hidden></p>
+    </section>
+
+    <section class="shop" aria-labelledby="shop-heading">
+      <h2 id="shop-heading">ข้อมูลร้าน</h2>
+      <dl class="shop-facts">
+        <dt>ที่อยู่</dt>
+        <dd>
+          8/31 ถนนป๊อปปูล่า โมริคอนโด บ้านใหม่ ปากเกร็ด นนทบุรี 11120
+          <a class="shop-map" id="map-link" href="#" target="_blank" rel="noopener noreferrer">ดูแผนที่</a>
+        </dd>
+
+        <dt>โทร</dt>
+        <dd id="shop-phones"></dd>
+
+        <dt>เวลาเปิด</dt>
+        <dd>
+          ทุกวัน 06:00 – 16:00
+          <span class="shop-sub">สั่งเดลิเวอรี่ได้ถึง 17:30</span>
+        </dd>
+
+        <dt>ประเภท</dt>
+        <dd>อาหารไทย · ช่วงราคาต่ำกว่า 100 บาท</dd>
+      </dl>
     </section>
   </main>
 
+  <div class="order-bar" id="order-bar" hidden>
+    <button type="button" class="order-toggle" id="order-toggle" aria-expanded="false" aria-controls="order-panel">
+      <span class="order-count" id="order-count">0</span>
+      <span class="order-label">รายการที่เลือก</span>
+      <span class="order-total" id="order-total">฿0</span>
+      <span class="order-caret" aria-hidden="true">▾</span>
+    </button>
+
+    <div class="order-panel" id="order-panel" hidden>
+      <ul class="order-list" id="order-list"></ul>
+      <div class="order-actions">
+        <button type="button" class="btn-clear" id="order-clear">ล้างทั้งหมด</button>
+        <a class="btn-order" id="order-link" href="#" target="_blank" rel="noopener noreferrer">
+          ไปสั่งจริงที่ LINE MAN
+        </a>
+      </div>
+    </div>
+  </div>
+
   <footer class="site-footer">
+    <p class="disclaimer">
+      หน้านี้ทำขึ้นเพื่อฝึกเขียนโค้ด <strong>ไม่ใช่หน้าสั่งอาหารของร้าน</strong>
+      กดปุ่มในหน้านี้ไม่ได้ส่งออเดอร์ไปที่ไหน
+    </p>
     <p id="footer-note"></p>
   </footer>
 

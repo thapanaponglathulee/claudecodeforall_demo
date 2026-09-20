@@ -1,159 +1,202 @@
-/* วันนี้กินอะไรดี — แนะนำอาหารไทย
+/* ช้อนทอง ข้าวแกงเมืองทองธานี — หน้าดูเมนูและคิดราคา
  *
- * ศัพท์ที่ใช้ในไฟล์นี้อ้างอิง CONTEXT.md: Dish, Pool, Favourite, Featured Dish,
- * Category, Spicy
+ * ข้อมูลเมนูคัดลอกมาจากหน้าสั่งอาหารของร้านบน Wongnai/LINE MAN เมื่อ 2026-09-20
+ * รูปภาพ "ลิงก์" ไปที่ img.wongnai.com ไม่ได้เก็บไฟล์ไว้ในโปรเจกต์นี้
+ * ราคาและเมนูเปลี่ยนได้ตลอดที่ร้าน — ตัวเลขในหน้านี้เป็นการประมาณ ไม่ใช่ราคาที่ผูกพัน
  *
- * !! ห้ามแก้ slug ของจานที่มีอยู่แล้ว !!
- * slug คือสิ่งที่ค้างอยู่ใน localStorage ของผู้ใช้ การเปลี่ยนเท่ากับทำ Favourite
- * ของคนที่เคยกดไว้หาย — ดู docs/adr/0001-stable-slug-ids-for-favourites.md
+ * !! ห้ามแก้ slug ของเมนูที่มีอยู่แล้ว !!
+ * slug คือสิ่งที่ค้างอยู่ใน localStorage ของผู้ใช้ เปลี่ยนเมื่อไหร่ตะกร้าที่ค้างไว้หาย
+ * ดู docs/adr/0001-stable-slug-ids-for-favourites.md
  */
 
 'use strict';
 
-/* ===== Category ===== */
+/* ===== ที่อยู่รูปและลิงก์สั่งจริง ===== */
+
+const IMG_BASE = 'https://img.wongnai.com/p/256x256/';
+const ORDER_URL = 'https://www.wongnai.com/delivery/businesses/3538938OX/order';
+
+/* ===== ข้อมูลร้าน =====
+ * จาก JSON-LD ของหน้าร้านบน Wongnai เมื่อ 2026-09-20
+ * openHour/closeHour คือเวลาหน้าร้าน ส่วน deliveryClose คือเวลาปิดรับเดลิเวอรี่
+ */
+
+const SHOP = {
+  name: 'ช้อนทอง ข้าวแกงเมืองทองธานี',
+  phones: ['0836066996', '0946954193'],
+  lat: 13.910931153543,
+  lng: 100.55450705811,
+  openHour: 6,
+  closeHour: 16,
+  deliveryClose: '17:30',
+};
+
+/* ===== หมวดเมนู ===== */
 
 const CATEGORIES = [
-  { key: 'single',  label: 'จานเดียว' },
-  { key: 'side',    label: 'กับข้าว' },
-  { key: 'yum',     label: 'ยำ-น้ำพริก' },
-  { key: 'dessert', label: 'ของหวาน' },
+  { key: 'rad-gaeng', label: 'ข้าวราดแกง' },
+  { key: 'kabkhao', label: 'กับข้าว' },
+  { key: 'khao', label: 'ข้าว' },
+  { key: 'namprik', label: 'น้ำพริก & ท็อปปิ้ง' },
+  { key: 'drink', label: 'เครื่องดื่ม' },
+  { key: 'dessert', label: 'ขนม' },
 ];
 
 const CATEGORY_LABEL = Object.fromEntries(CATEGORIES.map((c) => [c.key, c.label]));
 
-/* ===== Pool =====
- * เน้นจานที่สั่งกินจริงในชีวิตประจำวัน ไม่ใช่จานดังที่หาซื้อยาก
- * spicy เป็นการประมาณของคนเขียนลิสต์ ไม่ใช่ค่าที่วัดจริง
+/* หมายเหตุที่ร้านเขียนซ้ำในเกือบทุกจานของหมวดนั้น แสดงครั้งเดียวที่หัวหมวดแทน */
+const CATEGORY_NOTE = {
+  kabkhao: 'เมนูกับข้าวไม่รวมข้าว ถ้าต้องการข้าวสั่งเพิ่มในหมวด "ข้าว"',
+};
+
+/* ข้อความนี้ลงท้ายด้วย 🙏 ในข้อมูลร้าน ถ้าตัดแต่ตัวอักษรจะเหลือ emoji ลอยอยู่บนการ์ด */
+const BOILERPLATE = 'เมนูกับข้าว ต้องการข้าวกดสั่งเพิ่มหน้าเมนูข้าวค่ะ 🙏';
+
+/* emoji สำรองตอนรูปโหลดไม่ขึ้น หรือเมนูที่ร้านยังไม่ได้ใส่รูป */
+const FALLBACK_EMOJI = {
+  'rad-gaeng': '🍛', kabkhao: '🍲', khao: '🍚',
+  namprik: '🌶️', drink: '🥤', dessert: '🍪',
+};
+
+/* ===== Menu =====
+ * ราคาเป็นบาท ตรงตามที่ร้านลงไว้ตอนคัดลอกข้อมูล
+ * rec = ร้านจัดให้อยู่ในกลุ่ม "เมนูแนะนำ"
  */
 
-const DISHES = [
-  // --- จานเดียว (12) ---
-  { slug: 'pad-krapow-moo', name: 'ผัดกะเพราหมูสับไข่ดาว', nameEn: 'Pad Krapow Moo',
-    emoji: '🌿', category: 'single', spicy: 2,
-    desc: 'คำตอบมาตรฐานของคนคิดไม่ออก หมูสับผัดกะเพราพริกกระเทียม ราดข้าวสวยร้อน ๆ กับไข่ดาวกรอบขอบ' },
-  { slug: 'khao-man-gai', name: 'ข้าวมันไก่', nameEn: 'Khao Man Gai',
-    emoji: '🍗', category: 'single', spicy: 0,
-    desc: 'ไก่ต้มนุ่มบนข้าวหุงมันไก่ กินกับน้ำจิ้มเต้าเจี้ยวขิงที่เผ็ดแค่ไหนอยู่ที่มือเราเอง' },
-  { slug: 'khao-mu-daeng', name: 'ข้าวหมูแดง', nameEn: 'Khao Mu Daeng',
-    emoji: '🍖', category: 'single', spicy: 0,
-    desc: 'หมูแดงหั่นบางราดน้ำราดหวานเค็ม มักมาคู่หมูกรอบกับไข่ต้มและแตงกวา' },
-  { slug: 'pad-thai', name: 'ผัดไทยกุ้งสด', nameEn: 'Pad Thai',
-    emoji: '🍤', category: 'single', spicy: 0,
-    desc: 'เส้นจันท์ผัดน้ำมะขามเปียก โรยถั่วป่นบีบมะนาว ปรุงความเผ็ดเพิ่มเองด้วยพริกป่น' },
-  { slug: 'khao-pad-moo', name: 'ข้าวผัดหมู', nameEn: 'Khao Pad Moo',
-    emoji: '🍚', category: 'single', spicy: 0,
-    desc: 'ข้าวผัดจานง่ายที่ทุกร้านทำได้ ขาดไม่ได้คือมะนาวฝานกับน้ำปลาพริก' },
-  { slug: 'guay-teow-nam-moo', name: 'ก๋วยเตี๋ยวหมูน้ำใส', nameEn: 'Guay Teow Nam Moo',
-    emoji: '🍜', category: 'single', spicy: 1,
-    desc: 'น้ำซุปใสกับหมูสับหมูชิ้นและลูกชิ้น มื้อเบาที่ปรุงรสเองได้ครบจากเครื่องปรุงสี่ถ้วย' },
-  { slug: 'khao-kha-moo', name: 'ข้าวขาหมู', nameEn: 'Khao Kha Moo',
-    emoji: '🐷', category: 'single', spicy: 1,
-    desc: 'ขาหมูตุ๋นเปื่อยราดข้าว มากับน้ำจิ้มพริกกระเทียมเปรี้ยวและผักกาดดอง' },
-  { slug: 'khao-soi-gai', name: 'ข้าวซอยไก่', nameEn: 'Khao Soi Gai',
-    emoji: '🍲', category: 'single', spicy: 2,
-    desc: 'เส้นบะหมี่ในน้ำแกงกะทิเครื่องเทศแบบเหนือ โรยเส้นทอดกรอบ กินกับผักดองกับหอมแดง' },
-  { slug: 'rad-na-moo', name: 'ราดหน้าหมู', nameEn: 'Rad Na Moo',
-    emoji: '🥬', category: 'single', spicy: 0,
-    desc: 'เส้นใหญ่ผัดซีอิ๊วราดน้ำข้นกับคะน้า เติมพริกน้ำส้มแล้วรสชาติเปลี่ยนไปเลย' },
-  { slug: 'pad-see-ew', name: 'ผัดซีอิ๊ว', nameEn: 'Pad See Ew',
-    emoji: '🥢', category: 'single', spicy: 0,
-    desc: 'เส้นใหญ่ผัดไฟแรงกับไข่และคะน้า หอมกระทะแบบที่ทำเองที่บ้านยากจะเหมือน' },
-  { slug: 'khao-kai-jeow', name: 'ข้าวไข่เจียว', nameEn: 'Khao Kai Jeow',
-    emoji: '🍳', category: 'single', spicy: 0,
-    desc: 'ไข่เจียวฟูกรอบบนข้าวสวย ราดซอสพริกแล้วจบ มื้อที่ไม่เคยทำให้ผิดหวัง' },
-  { slug: 'ba-mee-moo-daeng', name: 'บะหมี่หมูแดง', nameEn: 'Ba Mee Moo Daeng',
-    emoji: '🍥', category: 'single', spicy: 0,
-    desc: 'บะหมี่เหลืองเหนียวนุ่มกับหมูแดงและเกี๊ยว สั่งแห้งหรือน้ำก็ได้ตามอารมณ์' },
-
-  // --- กับข้าว (9) ---
-  { slug: 'tom-yum-kung', name: 'ต้มยำกุ้ง', nameEn: 'Tom Yum Kung',
-    emoji: '🦐', category: 'side', spicy: 3,
-    desc: 'เปรี้ยวเผ็ดร้อนจากตะไคร้ใบมะกรูดข่าและพริก สั่งน้ำข้นหรือน้ำใสเป็นเรื่องที่เถียงกันไม่จบ' },
-  { slug: 'gaeng-keow-wan-gai', name: 'แกงเขียวหวานไก่', nameEn: 'Gaeng Keow Wan Gai',
-    emoji: '🥥', category: 'side', spicy: 2,
-    desc: 'แกงกะทิเขียวหอมใบโหระพา กินกับข้าวสวยหรือขนมจีนก็เข้ากัน' },
-  { slug: 'tom-kha-gai', name: 'ต้มข่าไก่', nameEn: 'Tom Kha Gai',
-    emoji: '🥛', category: 'side', spicy: 1,
-    desc: 'กะทิกับข่าและมะนาว เผ็ดน้อยกว่าต้มยำมาก เหมาะเวลาอยากได้อะไรอุ่น ๆ แต่ไม่อยากเผ็ด' },
-  { slug: 'pad-pak-boong', name: 'ผัดผักบุ้งไฟแดง', nameEn: 'Pad Pak Boong Fai Daeng',
-    emoji: '🔥', category: 'side', spicy: 2,
-    desc: 'ผักบุ้งผัดไฟแรงกับเต้าเจี้ยวและพริก จานผักที่สั่งคู่กับอะไรก็ได้' },
-  { slug: 'pla-rad-prik', name: 'ปลาทอดราดพริก', nameEn: 'Pla Rad Prik',
-    emoji: '🐟', category: 'side', spicy: 3,
-    desc: 'ปลาทอดกรอบราดน้ำพริกเปรี้ยวหวานเผ็ด จานที่ทำให้กินข้าวหมดหม้อ' },
-  { slug: 'gaeng-som-pak-ruam', name: 'แกงส้มผักรวม', nameEn: 'Gaeng Som',
-    emoji: '🍛', category: 'side', spicy: 3,
-    desc: 'แกงเปรี้ยวเผ็ดไม่ใส่กะทิ รสจัดจนต้องมีอะไรจืด ๆ กินคู่' },
-  { slug: 'kai-palo', name: 'ไข่พะโล้', nameEn: 'Kai Palo',
-    emoji: '🥚', category: 'side', spicy: 0,
-    desc: 'ไข่ต้มกับหมูสามชั้นในน้ำพะโล้หอมเครื่องเทศ หวานเค็มกลมกล่อม ไม่เผ็ดเลย' },
-  { slug: 'gaeng-jued-tao-hoo', name: 'แกงจืดเต้าหู้หมูสับ', nameEn: 'Gaeng Jued Tao Hoo',
-    emoji: '🍵', category: 'side', spicy: 0,
-    desc: 'ซุปใสกับเต้าหู้ไข่และหมูสับ ตัวช่วยประจำโต๊ะเวลาสั่งของเผ็ดไว้หลายจาน' },
-  { slug: 'pad-pak-ruam', name: 'ผัดผักรวมมิตร', nameEn: 'Pad Pak Ruam',
-    emoji: '🥦', category: 'side', spicy: 0,
-    desc: 'ผักหลายอย่างผัดน้ำมันหอย จานสามัญที่สั่งเพื่อให้มื้อนี้ดูมีผักบ้าง' },
-
-  // --- ยำ-น้ำพริก (5) ---
-  { slug: 'som-tam-thai', name: 'ส้มตำไทย', nameEn: 'Som Tam Thai',
-    emoji: '🥗', category: 'yum', spicy: 3,
-    desc: 'มะละกอสับตำกับมะนาวน้ำปลาถั่วลิสง สั่งกี่เม็ดบอกได้ แต่มือคนตำเป็นคนตัดสิน' },
-  { slug: 'larb-moo', name: 'ลาบหมู', nameEn: 'Larb Moo',
-    emoji: '🌶️', category: 'yum', spicy: 3,
-    desc: 'หมูสับคลุกข้าวคั่วพริกป่นกับสะระแหน่ เปรี้ยวเผ็ดหอม กินกับข้าวเหนียวและผักสด' },
-  { slug: 'yam-woon-sen', name: 'ยำวุ้นเส้น', nameEn: 'Yam Woon Sen',
-    emoji: '🦑', category: 'yum', spicy: 3,
-    desc: 'วุ้นเส้นลวกยำกับหมูสับและทะเล รสแซ่บที่กินเป็นมื้อเดียวก็อยู่ท้อง' },
-  { slug: 'nam-prik-kapi', name: 'น้ำพริกกะปิปลาทู', nameEn: 'Nam Prik Kapi',
-    emoji: '🐠', category: 'yum', spicy: 3,
-    desc: 'น้ำพริกกะปิกับปลาทูทอดและผักลวก มื้อไทยแท้ที่กินแล้วข้าวหายไปหลายจาน' },
-  { slug: 'nam-tok-moo', name: 'น้ำตกหมู', nameEn: 'Nam Tok Moo',
-    emoji: '🥩', category: 'yum', spicy: 3,
-    desc: 'หมูย่างหั่นชิ้นยำกับข้าวคั่วพริกป่นและมะนาว หอมกว่าลาบเพราะได้กลิ่นย่าง' },
-
-  // --- ของหวาน (4) ---
-  { slug: 'khao-niao-mamuang', name: 'ข้าวเหนียวมะม่วง', nameEn: 'Mango Sticky Rice',
-    emoji: '🥭', category: 'dessert', spicy: 0,
-    desc: 'ข้าวเหนียวมูนราดกะทิกับมะม่วงสุก ของหวานที่มีฤดูกาลของมันเอง' },
-  { slug: 'bua-loy', name: 'บัวลอยน้ำขิง', nameEn: 'Bua Loy',
-    emoji: '🍡', category: 'dessert', spicy: 0,
-    desc: 'แป้งปั้นลูกกลมในน้ำกะทิหรือน้ำขิงร้อน ๆ หวานอุ่นสบายท้อง' },
-  { slug: 'lod-chong', name: 'ลอดช่องน้ำกะทิ', nameEn: 'Lod Chong',
-    emoji: '🍧', category: 'dessert', spicy: 0,
-    desc: 'ลอดช่องเย็น ๆ ในน้ำกะทิน้ำตาลโตนด ของหวานประจำวันที่อากาศร้อนเกินทน' },
-  { slug: 'kluay-buat-chee', name: 'กล้วยบวชชี', nameEn: 'Kluay Buat Chee',
-    emoji: '🍌', category: 'dessert', spicy: 0,
-    desc: 'กล้วยน้ำว้าต้มในกะทิหวานเค็ม ของหวานบ้าน ๆ ที่ทำกินเองได้ในสิบนาที' },
+const MENU = [
+  { slug: "khao-rad-1", name: "ข้าวราด 1 อย่าง", price: 70, cat: "rad-gaeng",
+    img: "2026/09/09/b7caa0d4fccc439a892b12111f5732b6.jpg", rec: true, desc: "เลือกเมนูได้ค่ะ" },
+  { slug: "khao-rad-2", name: "ข้าวราดแกง 2 อย่าง", price: 80, cat: "rad-gaeng",
+    img: "2026/09/09/64ab9a33a37a481f9876a30a280364da.jpg", rec: true, desc: "เลือกเมนูได้ค่ะ" },
+  { slug: "khao-rad-3", name: "ข้าวราดแกง 3 อย่าง", price: 90, cat: "rad-gaeng",
+    img: "2026/09/18/84f2d457e0af42359cee92144817aedd.jpg", rec: false, desc: "เลือกเมนูได้ค่ะ" },
+  { slug: "palo-moo-sam-chan", name: "พะโล้หมูสามชั้น", price: 70, cat: "kabkhao",
+    img: "2026/09/12/83849f05540747669ee10d9effbbbd6a.jpg", rec: true, desc: "พะโล้ ใช้ไข่เป็ด เมนูกับข้าว ต้องการข้าวกดสั่งเพิ่มหน้าเมนูข้าวค่ะ 🙏" },
+  { slug: "panaeng-moo", name: "พะแนงหมู", price: 80, cat: "kabkhao",
+    img: "2026/09/09/8748935d30fd4238b0ed21997a0be818.jpg", rec: true, desc: "เมนูกับข้าว ต้องการข้าวกดสั่งเพิ่มหน้าเมนูข้าวค่ะ 🙏" },
+  { slug: "pla-pad-khuen-chai", name: "ปลาผัดขึ้นฉ่าย", price: 80, cat: "kabkhao",
+    img: "2026/09/15/78f082f0aa9f433faa6f9d92476c876f.jpg", rec: true, desc: "เมนูกับข้าว ต้องการข้าวกดสั่งเพิ่มหน้าเมนูข้าวค่ะ 🙏" },
+  { slug: "pad-pak-ruam-moo", name: "ผัดผักรวมหมู", price: 80, cat: "kabkhao",
+    img: "2026/09/09/4cdf477ce07c484bb124027187e40e4a.jpg", rec: true, desc: "เมนูกับข้าว ต้องการข้าวกดสั่งเพิ่มหน้าเมนูข้าวค่ะ 🙏" },
+  { slug: "khiao-wan-kai", name: "เขียวหวานไก่", price: 80, cat: "kabkhao",
+    img: "2026/09/09/f2b6ef72a9814f90a54531ebb65af27d.jpg", rec: false, desc: "เมนูกับข้าว ต้องการข้าวกดสั่งเพิ่มหน้าเมนูข้าวค่ะ 🙏" },
+  { slug: "tom-jued-taohu", name: "ต้มจืดเต้าหู้หมูสับ", price: 80, cat: "kabkhao",
+    img: "2026/09/09/61dfeb25f19b4e869d5658463c39ec87.jpg", rec: false, desc: "เมนูกับข้าว ต้องการข้าวกดสั่งเพิ่มหน้าเมนูข้าวค่ะ 🙏" },
+  { slug: "pad-prik-gaeng-moo", name: "ผัดพริกแกงหมูถั่วฝักยาว", price: 80, cat: "kabkhao",
+    img: "2026/09/11/f565d6ddcd034201ad283ea2bb8d06e1.jpg", rec: false, desc: "เมนูกับข้าว ต้องการข้าวกดสั่งเพิ่มหน้าเมนูข้าวค่ะ 🙏" },
+  { slug: "kai-kratiam", name: "ไก่กระเทียม", price: 80, cat: "kabkhao",
+    img: "2026/09/12/a934f50038a14074ae9562ac2c430a1b.jpg", rec: false, desc: "เมนูกับข้าว ต้องการข้าวกดสั่งเพิ่มหน้าเมนูข้าวค่ะ 🙏" },
+  { slug: "kaprao-moo-sab", name: "กะเพราหมูสับ", price: 80, cat: "kabkhao",
+    img: "2026/09/15/c5201aa4f6c94271940c95e4ea3f9b6d.jpg", rec: false, desc: "เมนูกับข้าว ต้องการข้าวกดสั่งเพิ่มหน้าเมนูข้าวค่ะ 🙏" },
+  { slug: "kalampli-pad-nampla", name: "กะหล่ำปลีผัดน้ำปลา", price: 80, cat: "kabkhao",
+    img: "2026/09/15/253f32de243142b59b9fbac1e98fce2d.jpg", rec: false, desc: "เมนูกับข้าว ต้องการข้าวกดสั่งเพิ่มหน้าเมนูข้าวค่ะ 🙏" },
+  { slug: "pad-normai-lookchin", name: "ผัดหน่อไม้ใส่ลูกชิ้น", price: 80, cat: "kabkhao",
+    img: "2026/09/15/c98a596501af4b62b181ca2b92694e14.jpg", rec: false, desc: "" },
+  { slug: "gaeng-som-pak-ruam", name: "แกงส้มผักรวม", price: 80, cat: "kabkhao",
+    img: "2026/09/15/c0ed12e080174d429c3c5305add2bdd5.jpg", rec: false, desc: "เนื้อปลานิลตำละเอียด เมนูกับข้าว ต้องการข้าวกดสั่งเพิ่มหน้าเมนูข้าวค่ะ 🙏" },
+  { slug: "pad-fak-thong", name: "ผัดฟักทอง", price: 80, cat: "kabkhao",
+    img: "2026/09/16/632996e214ab4359933cdcdd5789c2bd.jpg", rec: false, desc: "เมนูกับข้าว ต้องการข้าวกดสั่งเพิ่มหน้าเมนูข้าวค่ะ 🙏" },
+  { slug: "moo-pad-prik-yuak", name: "หมูผัดพริกหยวก", price: 80, cat: "kabkhao",
+    img: "2026/09/17/fd954f2573ee4223af751e4a4d8aab24.jpg", rec: false, desc: "เมนูกับข้าว ต้องการข้าวกดสั่งเพิ่มหน้าเมนูข้าวค่ะ 🙏" },
+  { slug: "tom-kha-kai", name: "ต้มข่าไก่", price: 80, cat: "kabkhao",
+    img: "2026/09/18/102be966faec473ea4d7e3c9502ddcbe.jpg", rec: false, desc: "เมนูกับข้าว ต้องการข้าวกดสั่งเพิ่มหน้าเมนูข้าวค่ะ 🙏" },
+  { slug: "buap-pad-khai", name: "บวบผัดไข่", price: 80, cat: "kabkhao",
+    img: "2026/09/19/434ead1ab7d2496bbb73c02e51448dfc.jpg", rec: false, desc: "" },
+  { slug: "gaeng-tepo", name: "แกงเทโพ", price: 80, cat: "kabkhao",
+    img: "2026/09/20/92a5cafa76d4486e8d1cd31f1cf73ef2.jpg", rec: false, desc: "" },
+  { slug: "khao-hom-mali", name: "ข้าวหอมมะลิ", price: 15, cat: "khao",
+    img: null, rec: false, desc: "" },
+  { slug: "khao-riceberry", name: "ข้าวไรซ์เบอร์รี่", price: 15, cat: "khao",
+    img: "2026/09/18/765bb19166614716a5a85a3e8734d550.jpg", rec: false, desc: "" },
+  { slug: "kunchiang-moo", name: "กุนเชียงหมูหั่นชิ้น", price: 20, cat: "namprik",
+    img: "2026/09/15/1e6335462886418980d4b237c54568da.jpg", rec: false, desc: "จะได้ 4-5 ชิ้น" },
+  { slug: "peek-kai-tod", name: "ปีกไก่ทอด", price: 20, cat: "namprik",
+    img: null, rec: false, desc: "" },
+  { slug: "moo-yor-tod", name: "หมูยอทอด", price: 20, cat: "namprik",
+    img: "2026/09/19/0151d387414c4058ad0ebcf7bbec1ace.jpg", rec: false, desc: "1 ชิ้น" },
+  { slug: "khai-cha-om", name: "ไข่ชะอม", price: 25, cat: "namprik",
+    img: "2026/09/13/60e1c7a74f5d47d194d2a6e694a360d5.jpg", rec: false, desc: "จะได้5-6ชิ้น" },
+  { slug: "nam-prik-kapi", name: "น้ำพริกกะปิ", price: 25, cat: "namprik",
+    img: "2026/09/15/4a9882e576c440af9cc38689f824822a.jpg", rec: false, desc: "" },
+  { slug: "pla-tu-tod", name: "ปลาทูทอด", price: 45, cat: "namprik",
+    img: "2026/09/15/8c3b4813de74466ca85f29b46a6b49cc.jpg", rec: false, desc: "" },
+  { slug: "set-nam-prik-s", name: "ชุดน้ำพริกกะปิ (เล็ก)", price: 50, cat: "namprik",
+    img: "2026/09/09/c44f1b81f4c04ebdb98d63e598afce94.jpg", rec: false, desc: "น้ำพริกกะปิ พร้อมผัก" },
+  { slug: "set-nam-prik-m", name: "ชุดน้ำพริกกะปิ (กลาง)", price: 70, cat: "namprik",
+    img: "2026/09/09/d5d6d72211084bc38c7312b8bea8b93c.jpg", rec: true, desc: "น้ำพริกกะปิ พร้อมผัก + ไข่ชะอม" },
+  { slug: "set-nam-prik-l", name: "ชุดน้ำพริกกะปิ (ใหญ่)", price: 100, cat: "namprik",
+    img: "2026/09/09/f5acbac3ff6940e993b04af462fd558f.jpg", rec: true, desc: "น้ำพริกกะปิ พร้อมผัก + ไข่ชะอม + ปลาทู" },
+  { slug: "nam-khaeng", name: "น้ำแข็ง", price: 5, cat: "drink",
+    img: "2026/09/14/1e51b9e43a364aa485dbe4b09ca462b4.jpg", rec: false, desc: "" },
+  { slug: "nam-plao", name: "น้ำเปล่า", price: 15, cat: "drink",
+    img: "2026/09/12/7c549e99cd3e40eda43a20c3dd62e66f.jpg", rec: false, desc: "550 ml" },
+  { slug: "nam-rae", name: "น้ำแร่", price: 25, cat: "drink",
+    img: "2026/09/12/fe0e953c422f4fafb66babe94c63c387.jpg", rec: false, desc: "" },
+  { slug: "coke-zero-bottle", name: "โค้ก ไม่มีน้ำตาล ขวดพลาสติก", price: 25, cat: "drink",
+    img: "2026/09/13/fd588dfe10a44e93b5c24ac6770530ce.jpg", rec: false, desc: "330 ml" },
+  { slug: "nam-kek-huay", name: "น้ำเก๊กฮวย", price: 30, cat: "drink",
+    img: "2026/09/14/37ccbd25a5d6490e878cdc7537c84f92.jpg", rec: true, desc: "" },
+  { slug: "coke-zero-can", name: "โค้ก ไม่มีน้ำตาล กระป๋อง", price: 30, cat: "drink",
+    img: "2026/09/12/4092d8b0c7154befb8f8d9f30eba3124.jpg", rec: false, desc: "" },
+  { slug: "schweppes-manao", name: "ชเวปส์มะนาว", price: 30, cat: "drink",
+    img: "2026/09/13/9c633d735cf84bdcb04e748fcbdb1c90.jpg", rec: false, desc: "" },
+  { slug: "nam-krachiap", name: "น้ำกระเจี๊ยบ", price: 30, cat: "drink",
+    img: "2026/09/14/ad5b630fa93d45e1b2258ab5ed925c88.jpg", rec: false, desc: "" },
+  { slug: "khao-tom-mad-tua", name: "ข้าวต้มมัด ไส้ถั่ว", price: 20, cat: "dessert",
+    img: "2026/09/11/e4bf783848cf4b35af9b00ec86658169.jpg", rec: false, desc: "" },
+  { slug: "khanom-kha-kai", name: "ขนมขาไก่", price: 25, cat: "dessert",
+    img: "2026/09/14/8002d767513e487c81c19231be6675af.jpg", rec: false, desc: "" },
+  { slug: "pang-krob-sapparod", name: "ปังกรอบไส้สับปะรด", price: 25, cat: "dessert",
+    img: "2026/09/14/7d6af88f41c44de58f19521799ff8292.jpg", rec: false, desc: "" },
+  { slug: "cookie-singapore", name: "คุกกี้สิงคโปร์", price: 25, cat: "dessert",
+    img: "2026/09/14/cc22df5411c94cf8a8a842bf01bb1091.jpg", rec: false, desc: "" },
+  { slug: "tako-phuak", name: "ตะโก้เผือก", price: 25, cat: "dessert",
+    img: "2026/09/19/b7c976f9b5094e0f9a383bbf45d1ceea.jpg", rec: false, desc: "" },
+  { slug: "khanom-sai-sai", name: "ขนมใส่ไส้", price: 40, cat: "dessert",
+    img: "2026/09/11/90f62031701249339dca581af2c459ca.jpg", rec: true, desc: "2 ห่อ" },
+  { slug: "soft-cookie-almond", name: "ซอฟคุกกี้ อัลมอนด์", price: 40, cat: "dessert",
+    img: "2026/09/14/eef430a2cfd144db92363705d0c11c80.jpg", rec: true, desc: "" },
+  { slug: "soft-cookie-red-velvet", name: "ซอฟคุกกี้ เรดเวลเวท", price: 45, cat: "dessert",
+    img: "2026/09/14/0e689f5c1818443a9cf103f8623ddcf0.jpg", rec: true, desc: "" },
+  { slug: "soft-cookie-chocolate", name: "ซอฟคุกกี้ ช็อคโกแลต", price: 45, cat: "dessert",
+    img: "2026/09/14/61d9a5d76f18424aabdabca64cf168e1.jpg", rec: true, desc: "" },
 ];
 
-const DISH_BY_SLUG = new Map(DISHES.map((d) => [d.slug, d]));
+const BY_SLUG = new Map(MENU.map((d) => [d.slug, d]));
 
-/* ===== Favourite — เก็บในเครื่องผู้ใช้เท่านั้น ===== */
+/* ===== ตะกร้า — เก็บในเครื่องผู้ใช้เท่านั้น ===== */
 
-const STORAGE_KEY = 'thai-food:favourites';
+const STORAGE_KEY = 'chonthong:order';
 
-/** อ่าน Favourite จาก localStorage
- *  ตัด slug ที่ไม่มีอยู่ใน Pool ปัจจุบันทิ้ง (ADR-0001)
- *  พังเมื่อไหร่ก็ถือว่าไม่มี Favourite แล้วไปต่อ ไม่รบกวนผู้ใช้
+/** อ่านตะกร้าจาก localStorage
+ *  ตัด slug ที่ไม่มีในเมนูปัจจุบันทิ้ง และตัดจำนวนที่ไม่สมเหตุสมผลออก
+ *  พังเมื่อไหร่ก็ถือว่าตะกร้าว่างแล้วไปต่อ ไม่รบกวนผู้ใช้
  */
-function loadFavourites() {
+function loadOrder() {
+  const order = new Map();
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return new Set();
+    if (!raw) return order;
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return new Set();
-    return new Set(parsed.filter((slug) => DISH_BY_SLUG.has(slug)));
+    if (!parsed || typeof parsed !== 'object') return order;
+    for (const [slug, qty] of Object.entries(parsed)) {
+      const n = Math.floor(Number(qty));
+      if (BY_SLUG.has(slug) && Number.isFinite(n) && n > 0) {
+        order.set(slug, Math.min(n, MAX_QTY));
+      }
+    }
   } catch (err) {
-    return new Set();
+    order.clear();
   }
+  return order;
 }
 
-/** เขียน Favourite ลง localStorage — เบราว์เซอร์ที่ปิด storage ไว้จะ throw ตรงนี้
- *  ปล่อยผ่านเงียบ ๆ เว็บยังใช้งานได้ปกติ แค่หัวใจไม่ถูกจำ
+/** เขียนตะกร้าลง localStorage — เบราว์เซอร์ที่ปิด storage ไว้จะ throw ตรงนี้
+ *  ปล่อยผ่านเงียบ ๆ เว็บยังใช้งานได้ปกติ แค่จำตะกร้าข้ามครั้งไม่ได้
  */
-function saveFavourites() {
+function saveOrder() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...favourites]));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(Object.fromEntries(order)));
   } catch (err) {
     /* ไม่ทำอะไร: จำไม่ได้ดีกว่าขึ้น error ขวางหน้า */
   }
@@ -161,181 +204,229 @@ function saveFavourites() {
 
 /* ===== สถานะของหน้า ===== */
 
-const favourites = loadFavourites();
-let featuredSlug = null;      // Dish ที่แสดงบนการ์ดใบใหญ่
-let activeCategory = 'all';   // ชิป Category ที่เลือกอยู่ เลือกได้ทีละหนึ่ง
-let favOnly = false;          // สวิตช์ "เฉพาะที่ชอบ"
-let gridSlugs = [];           // สแนปช็อตของกริด คำนวณใหม่เมื่อ "ตัวกรอง" เปลี่ยนเท่านั้น
-let swapTimer = null;         // คิวทรานซิชันของการ์ดใบใหญ่
+const MAX_QTY = 99;
 
-const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const order = loadOrder();
+let query = '';            // คำค้นที่พิมพ์อยู่
+let activeCategory = 'all'; // ชิปหมวดที่เลือก เลือกได้ทีละหนึ่ง
+let recOnly = false;        // สวิตช์ "เฉพาะเมนูแนะนำ"
+let panelOpen = false;      // แผงรายละเอียดตะกร้าเปิดอยู่หรือไม่
 
 const els = {
-  featured: document.getElementById('featured'),
-  randomBtn: document.getElementById('random-btn'),
+  search: document.getElementById('search'),
+  searchClear: document.getElementById('search-clear'),
+  recOnly: document.getElementById('rec-only'),
   chips: document.getElementById('chips'),
-  favOnly: document.getElementById('fav-only'),
-  grid: document.getElementById('grid'),
+  menu: document.getElementById('menu'),
   empty: document.getElementById('empty'),
+  resultCount: document.getElementById('result-count'),
+  orderBar: document.getElementById('order-bar'),
+  orderToggle: document.getElementById('order-toggle'),
+  orderPanel: document.getElementById('order-panel'),
+  orderList: document.getElementById('order-list'),
+  orderCount: document.getElementById('order-count'),
+  orderTotal: document.getElementById('order-total'),
+  orderClear: document.getElementById('order-clear'),
+  orderLink: document.getElementById('order-link'),
+  hoursText: document.getElementById('hours-text'),
+  hoursDot: document.getElementById('hours-dot'),
+  shopPhones: document.getElementById('shop-phones'),
+  mapLink: document.getElementById('map-link'),
   footerNote: document.getElementById('footer-note'),
 };
 
-/* ===== ตัวช่วยแสดงผล ===== */
+/* ===== ตัวช่วย ===== */
 
-function spicyText(level) {
-  return level === 0 ? 'ไม่เผ็ด' : '🌶️'.repeat(level);
+/* ชื่อเมนูมาจากการคัดลอกหน้าเว็บคนอื่น ไม่ใช่ข้อความที่เราพิมพ์เองทั้งหมด
+ * จึง escape ก่อนยัดลง innerHTML เสมอ */
+function esc(text) {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
-function spicyLabel(level) {
-  return level === 0 ? 'ไม่เผ็ด' : `ความเผ็ด ${level} จาก 3`;
+function baht(amount) {
+  return '฿' + amount.toLocaleString('th-TH');
 }
 
-function heartHtml(dish, extraClass) {
-  const on = favourites.has(dish.slug);
-  return `<button type="button" class="heart ${extraClass}" data-heart="${dish.slug}"
-            aria-pressed="${on}" aria-label="ชอบ ${dish.name}">${on ? '♥' : '♡'}</button>`;
+function cleanDesc(dish) {
+  return dish.desc.split(BOILERPLATE).join('').trim();
 }
 
-/* ===== การ์ด Featured Dish ===== */
-
-function renderFeatured(dish) {
-  els.featured.innerHTML = `
-    <div class="featured-emoji" aria-hidden="true">${dish.emoji}</div>
-    <h3 class="featured-name">${dish.name}</h3>
-    <p class="featured-name-en">${dish.nameEn}</p>
-    <p class="featured-desc">${dish.desc}</p>
-    <div class="featured-meta">
-      <span class="chip chip--${dish.category}">${CATEGORY_LABEL[dish.category]}</span>
-      <span class="spicy" aria-label="${spicyLabel(dish.spicy)}">${spicyText(dish.spicy)}</span>
-    </div>
-    ${heartHtml(dish, 'heart--lg')}`;
-}
-
-/** ตั้ง Dish ที่จะแสดงบนการ์ดใบใหญ่ — มาจากการสุ่มหรือจากการกดการ์ดในกริดก็ได้ */
-function setFeatured(slug, animate) {
-  const dish = DISH_BY_SLUG.get(slug);
-  if (!dish) return;
-
-  const previous = featuredSlug;
-  featuredSlug = slug;
-
-  if (animate && !reduceMotion.matches) {
-    // กดรัว ๆ ต้องไม่ทำให้จานที่ค้างคิวอยู่แวบขึ้นมาก่อนจานล่าสุด
-    if (swapTimer) clearTimeout(swapTimer);
-    els.featured.classList.add('is-swapping');
-    swapTimer = setTimeout(() => {
-      renderFeatured(dish);
-      els.featured.classList.remove('is-swapping');
-      swapTimer = null;
-    }, 180);
-  } else {
-    renderFeatured(dish);
-  }
-
-  highlightInGrid(previous, slug);
-}
-
-/** ย้ายขอบเน้นในกริด โดยไม่เรนเดอร์กริดใหม่และไม่เลื่อนจอตาม */
-function highlightInGrid(previousSlug, nextSlug) {
-  if (previousSlug) {
-    const old = els.grid.querySelector(`.card[data-slug="${previousSlug}"]`);
-    if (old) old.classList.remove('is-featured');
-  }
-  const next = els.grid.querySelector(`.card[data-slug="${nextSlug}"]`);
-  if (next) next.classList.add('is-featured');
-}
-
-/* ===== ปุ่มสุ่ม — ดึงจาก Pool ทั้งหมดเสมอ ไม่สนตัวกรอง ===== */
-
-function pickRandomSlug() {
-  const candidates = DISHES.filter((d) => d.slug !== featuredSlug);
-  const pool = candidates.length > 0 ? candidates : DISHES;
-  return pool[Math.floor(Math.random() * pool.length)].slug;
-}
-
-/* ===== กริด Pool ===== */
-
-function matchesFilters(dish) {
-  if (activeCategory !== 'all' && dish.category !== activeCategory) return false;
-  if (favOnly && !favourites.has(dish.slug)) return false;
-  return true;
-}
-
-function cardHtml(dish) {
-  const featured = dish.slug === featuredSlug ? ' is-featured' : '';
-  return `
-    <li class="card${featured}" data-slug="${dish.slug}">
-      <button type="button" class="card-main" data-pick="${dish.slug}">
-        <span class="card-emoji" aria-hidden="true">${dish.emoji}</span>
-        <span class="card-name">${dish.name}</span>
-        <span class="card-name-en">${dish.nameEn}</span>
-        <span class="card-meta">
-          <span class="chip chip--${dish.category}">${CATEGORY_LABEL[dish.category]}</span>
-          <span class="spicy" aria-label="${spicyLabel(dish.spicy)}">${spicyText(dish.spicy)}</span>
-        </span>
-      </button>
-      ${heartHtml(dish, '')}
-    </li>`;
-}
-
-/** เรนเดอร์กริดจากสแนปช็อตใหม่
- *  เรียกเมื่อ "ตัวกรองเปลี่ยน" เท่านั้น — การกดหัวใจไม่เรียกฟังก์ชันนี้
- *  เพื่อให้การ์ดที่เพิ่งเอาหัวใจออกค้างอยู่ ไม่หายไปใต้นิ้วผู้ใช้
- */
-function renderGrid() {
-  gridSlugs = DISHES.filter(matchesFilters).map((d) => d.slug);
-  els.grid.innerHTML = gridSlugs.map((slug) => cardHtml(DISH_BY_SLUG.get(slug))).join('');
-  renderEmptyState();
-}
-
-function renderEmptyState() {
-  if (gridSlugs.length > 0) {
-    els.empty.hidden = true;
-    els.empty.innerHTML = '';
-    return;
-  }
-
-  let message;
-  if (favOnly && activeCategory !== 'all') {
-    message = `ยังไม่มี${CATEGORY_LABEL[activeCategory]}ที่ชอบ`;
-  } else if (favOnly) {
-    message = 'ยังไม่มีจานที่ชอบ — กดหัวใจที่จานไหนก็ได้เพื่อเก็บไว้';
-  } else {
-    message = 'ไม่มีจานในกลุ่มนี้';
-  }
-
-  els.empty.innerHTML = message +
-    (favOnly ? '<button type="button" id="clear-fav-filter">ปิดตัวกรองเฉพาะที่ชอบ</button>' : '');
-  els.empty.hidden = false;
-}
-
-/* ===== Favourite: สลับสถานะ ===== */
-
-function toggleFavourite(slug) {
-  if (!DISH_BY_SLUG.has(slug)) return;
-
-  if (favourites.has(slug)) {
-    favourites.delete(slug);
-  } else {
-    favourites.add(slug);
-  }
-  saveFavourites();
-
-  // หัวใจของจานเดียวกันอาจมีสองที่ (การ์ดใบใหญ่ + การ์ดในกริด) ต้องเปลี่ยนพร้อมกัน
-  const on = favourites.has(slug);
-  document.querySelectorAll(`[data-heart="${slug}"]`).forEach((btn) => {
-    btn.setAttribute('aria-pressed', String(on));
-    btn.textContent = on ? '♥' : '♡';
+/* ตรวจตอนโหลดว่าการตัดข้อความซ้ำไม่ได้ทิ้งเศษไว้บนการ์ด
+ * ข้อมูลเมนูคัดลอกมาจากหน้าร้าน รูปแบบข้อความเปลี่ยนได้โดยเราไม่รู้ตัว */
+function warnOnDescLeftovers() {
+  const leftovers = MENU.filter((d) => {
+    const desc = cleanDesc(d);
+    return desc !== '' && desc.length <= 3;
   });
+  if (leftovers.length > 0) {
+    console.warn('เศษคำอธิบายค้างอยู่ ' + leftovers.length + ' รายการ:',
+      leftovers.map((d) => d.slug + '=' + JSON.stringify(cleanDesc(d))).join(', '));
+  }
+}
+
+function qtyOf(slug) {
+  return order.get(slug) || 0;
+}
+
+function orderCount() {
+  let n = 0;
+  for (const qty of order.values()) n += qty;
+  return n;
+}
+
+function orderTotal() {
+  let sum = 0;
+  for (const [slug, qty] of order) sum += BY_SLUG.get(slug).price * qty;
+  return sum;
 }
 
 /* ===== ตัวกรอง ===== */
 
+function matchesFilters(dish) {
+  if (activeCategory !== 'all' && dish.cat !== activeCategory) return false;
+  if (recOnly && !dish.rec) return false;
+  if (query && !dish.name.includes(query) && !cleanDesc(dish).includes(query)) return false;
+  return true;
+}
+
+/* ===== การ์ดเมนู ===== */
+
+function thumbHtml(dish) {
+  const emoji = FALLBACK_EMOJI[dish.cat] || '🍽️';
+  if (!dish.img) {
+    return '<span class="thumb thumb--empty" aria-hidden="true">' + emoji + '</span>';
+  }
+  // รูปลิงก์ข้ามโดเมน ถ้าวันหนึ่งเจ้าของย้ายไฟล์ ต้องไม่เหลือกรอบรูปแตกค้างไว้
+  return '<span class="thumb" aria-hidden="true">' +
+    '<img src="' + esc(IMG_BASE + dish.img) + '" alt="" loading="lazy" decoding="async"' +
+    ' width="96" height="96" data-fallback="' + emoji + '">' +
+    '</span>';
+}
+
+function cardHtml(dish) {
+  const qty = qtyOf(dish.slug);
+  const desc = cleanDesc(dish);
+  return '<li class="card' + (qty > 0 ? ' is-picked' : '') + '" data-slug="' + esc(dish.slug) + '">' +
+    thumbHtml(dish) +
+    '<div class="card-body">' +
+      '<p class="card-name">' + esc(dish.name) +
+        (dish.rec ? ' <span class="badge-rec">แนะนำ</span>' : '') +
+      '</p>' +
+      (desc ? '<p class="card-desc">' + esc(desc) + '</p>' : '') +
+      '<p class="card-price">' + baht(dish.price) + '</p>' +
+    '</div>' +
+    '<div class="card-qty">' +
+      (qty > 0
+        ? '<button type="button" class="qty-btn" data-dec="' + esc(dish.slug) + '" aria-label="ลด ' + esc(dish.name) + '">−</button>' +
+          '<span class="qty-num" aria-label="จำนวน ' + qty + '">' + qty + '</span>'
+        : '') +
+      '<button type="button" class="qty-btn qty-add" data-inc="' + esc(dish.slug) + '" aria-label="เพิ่ม ' + esc(dish.name) + '">+</button>' +
+    '</div>' +
+  '</li>';
+}
+
+function sectionHtml(cat, dishes) {
+  const note = CATEGORY_NOTE[cat];
+  return '<section class="cat-block">' +
+    '<h3 class="cat-title">' + esc(CATEGORY_LABEL[cat]) +
+      ' <span class="cat-count">' + dishes.length + ' รายการ</span></h3>' +
+    (note ? '<p class="cat-note">' + esc(note) + '</p>' : '') +
+    '<ul class="cards">' + dishes.map(cardHtml).join('') + '</ul>' +
+  '</section>';
+}
+
+/* ===== เรนเดอร์ =====
+ * เรนเดอร์ใหม่ทั้งลิสต์เฉพาะตอน "ตัวกรองเปลี่ยน" เท่านั้น
+ * การกดเพิ่ม/ลดจำนวนแก้เฉพาะการ์ดใบนั้น เพื่อไม่ให้ลิสต์กระโดดใต้นิ้วผู้ใช้
+ */
+function renderMenu() {
+  const shown = MENU.filter(matchesFilters);
+
+  if (shown.length === 0) {
+    els.menu.innerHTML = '';
+    els.resultCount.textContent = '';
+    els.empty.textContent = query
+      ? 'ไม่พบเมนูที่ตรงกับ "' + query + '"'
+      : 'ไม่มีเมนูในกลุ่มนี้';
+    els.empty.hidden = false;
+    return;
+  }
+
+  els.empty.hidden = true;
+  els.resultCount.textContent = 'แสดง ' + shown.length + ' จาก ' + MENU.length + ' รายการ';
+
+  const blocks = [];
+  for (const cat of CATEGORIES) {
+    const dishes = shown.filter((d) => d.cat === cat.key);
+    if (dishes.length > 0) blocks.push(sectionHtml(cat.key, dishes));
+  }
+  els.menu.innerHTML = blocks.join('');
+}
+
+function renderCard(slug) {
+  const card = els.menu.querySelector('.card[data-slug="' + slug + '"]');
+  if (!card) return;
+  card.outerHTML = cardHtml(BY_SLUG.get(slug));
+}
+
+function renderOrder() {
+  const count = orderCount();
+  els.orderBar.hidden = count === 0;
+  if (count === 0) {
+    panelOpen = false;
+    els.orderPanel.hidden = true;
+    els.orderToggle.setAttribute('aria-expanded', 'false');
+    return;
+  }
+
+  els.orderCount.textContent = count;
+  els.orderTotal.textContent = baht(orderTotal());
+
+  els.orderList.innerHTML = [...order].map(([slug, qty]) => {
+    const dish = BY_SLUG.get(slug);
+    return '<li class="order-item">' +
+      '<span class="order-item-qty">' + qty + '×</span>' +
+      '<span class="order-item-name">' + esc(dish.name) + '</span>' +
+      '<span class="order-item-sum">' + baht(dish.price * qty) + '</span>' +
+      '<button type="button" class="order-item-del" data-del="' + esc(slug) + '"' +
+        ' aria-label="เอา ' + esc(dish.name) + ' ออก">×</button>' +
+    '</li>';
+  }).join('');
+}
+
+/* ===== แก้จำนวนในตะกร้า ===== */
+
+function changeQty(slug, delta) {
+  if (!BY_SLUG.has(slug)) return;
+  const next = qtyOf(slug) + delta;
+  if (next <= 0) order.delete(slug);
+  else order.set(slug, Math.min(next, MAX_QTY));
+  saveOrder();
+  renderCard(slug);
+  renderOrder();
+}
+
+function removeFromOrder(slug) {
+  if (!order.has(slug)) return;
+  order.delete(slug);
+  saveOrder();
+  renderCard(slug);
+  renderOrder();
+}
+
+/* ===== ชิปหมวด ===== */
+
 function renderChips() {
   const all = [{ key: 'all', label: 'ทั้งหมด' }, ...CATEGORIES];
-  els.chips.innerHTML = all.map((c) => `
-    <button type="button" class="chip-btn" data-category="${c.key}"
-            aria-pressed="${c.key === activeCategory}">${c.label}</button>`).join('');
+  els.chips.innerHTML = all.map((c) =>
+    '<button type="button" class="chip-btn" data-category="' + c.key + '"' +
+    ' aria-pressed="' + (c.key === activeCategory) + '">' + esc(c.label) + '</button>'
+  ).join('');
 }
 
 function setCategory(key) {
@@ -344,28 +435,45 @@ function setCategory(key) {
   els.chips.querySelectorAll('[data-category]').forEach((btn) => {
     btn.setAttribute('aria-pressed', String(btn.dataset.category === activeCategory));
   });
-  renderGrid();
+  renderMenu();
 }
 
 /* ===== ผูก event ===== */
 
-els.randomBtn.addEventListener('click', () => {
-  setFeatured(pickRandomSlug(), true);
+els.menu.addEventListener('click', (event) => {
+  const inc = event.target.closest('[data-inc]');
+  if (inc) { changeQty(inc.dataset.inc, 1); return; }
+  const dec = event.target.closest('[data-dec]');
+  if (dec) changeQty(dec.dataset.dec, -1);
 });
 
-els.featured.addEventListener('click', (event) => {
-  const heart = event.target.closest('[data-heart]');
-  if (heart) toggleFavourite(heart.dataset.heart);
+/* รูปจาก Wongnai อาจหายหรือถูกบล็อก — สลับไปใช้ emoji แทนกรอบรูปแตก
+ * error ของ <img> ไม่ bubble จึงต้องดักตอน capture */
+els.menu.addEventListener('error', (event) => {
+  const img = event.target;
+  if (!img.matches || !img.matches('.thumb img')) return;
+  const span = img.parentElement;
+  span.classList.add('thumb--empty');
+  span.textContent = img.dataset.fallback || '🍽️';
+}, true);
+
+els.search.addEventListener('input', () => {
+  query = els.search.value.trim();
+  els.searchClear.hidden = query === '';
+  renderMenu();
 });
 
-els.grid.addEventListener('click', (event) => {
-  const heart = event.target.closest('[data-heart]');
-  if (heart) {
-    toggleFavourite(heart.dataset.heart);
-    return;
-  }
-  const pick = event.target.closest('[data-pick]');
-  if (pick) setFeatured(pick.dataset.pick, true);
+els.searchClear.addEventListener('click', () => {
+  els.search.value = '';
+  query = '';
+  els.searchClear.hidden = true;
+  els.search.focus();
+  renderMenu();
+});
+
+els.recOnly.addEventListener('change', () => {
+  recOnly = els.recOnly.checked;
+  renderMenu();
 });
 
 els.chips.addEventListener('click', (event) => {
@@ -373,24 +481,67 @@ els.chips.addEventListener('click', (event) => {
   if (chip) setCategory(chip.dataset.category);
 });
 
-els.favOnly.addEventListener('change', () => {
-  favOnly = els.favOnly.checked;
-  renderGrid();
+els.orderToggle.addEventListener('click', () => {
+  panelOpen = !panelOpen;
+  els.orderPanel.hidden = !panelOpen;
+  els.orderToggle.setAttribute('aria-expanded', String(panelOpen));
 });
 
-els.empty.addEventListener('click', (event) => {
-  if (event.target.id !== 'clear-fav-filter') return;
-  els.favOnly.checked = false;
-  favOnly = false;
-  renderGrid();
+els.orderList.addEventListener('click', (event) => {
+  const del = event.target.closest('[data-del]');
+  if (del) removeFromOrder(del.dataset.del);
 });
+
+els.orderClear.addEventListener('click', () => {
+  const slugs = [...order.keys()];
+  order.clear();
+  saveOrder();
+  slugs.forEach(renderCard);
+  renderOrder();
+});
+
+/* ===== ข้อมูลร้านบนหน้า ===== */
+
+/** บอกว่าตอนนี้ร้านเปิดอยู่ไหม
+ *  อิงนาฬิกาของเครื่องผู้ใช้ ถ้าเครื่องตั้งคนละโซนเวลากับร้านก็จะเพี้ยนตามนั้น
+ *  ร้านเปิดเวลาเดียวกันทุกวัน จึงไม่ต้องแยกวัน
+ */
+function isOpenNow(now) {
+  const hour = now.getHours() + now.getMinutes() / 60;
+  return hour >= SHOP.openHour && hour < SHOP.closeHour;
+}
+
+function renderHours() {
+  const open = isOpenNow(new Date());
+  els.hoursText.textContent = open
+    ? 'เปิดอยู่ ปิด ' + SHOP.closeHour + ':00'
+    : 'ปิดอยู่ เปิด 0' + SHOP.openHour + ':00';
+  els.hoursDot.classList.toggle('dot--closed', !open);
+}
+
+function renderShop() {
+  els.shopPhones.innerHTML = SHOP.phones.map((p) => {
+    const pretty = p.slice(0, 3) + '-' + p.slice(3, 6) + '-' + p.slice(6);
+    return '<a href="tel:' + esc(p) + '">' + esc(pretty) + '</a>';
+  }).join(' · ');
+
+  els.mapLink.href = 'https://www.google.com/maps/search/?api=1&query=' + SHOP.lat + ',' + SHOP.lng;
+}
 
 /* ===== เริ่มต้น ===== */
 
-els.footerNote.textContent =
-  `เมนูในลิสต์ ${DISHES.length} จาน · ระดับความเผ็ดเป็นการประมาณ ไม่ใช่ค่าที่วัดจริง · ` +
-  'รายการโปรดเก็บไว้ในเครื่องนี้เท่านั้น ไม่ได้ส่งไปไหน';
+els.orderLink.href = ORDER_URL;
 
+els.footerNote.textContent =
+  'เมนู ' + MENU.length + ' รายการ · ราคาคัดลอกมาเมื่อ 20 ก.ย. 2026 อาจไม่ตรงกับหน้าร้านแล้ว · ' +
+  'รายการที่เลือกเก็บไว้ในเครื่องนี้เท่านั้น ไม่ได้ส่งไปไหน';
+
+warnOnDescLeftovers();
+renderHours();
+renderShop();
 renderChips();
-renderGrid();
-setFeatured(pickRandomSlug(), false);  // สุ่มให้เลยตอนโหลดหน้า ไม่ต้องรอผู้ใช้กด
+renderMenu();
+renderOrder();
+
+/* หน้าเปิดค้างไว้ข้ามช่วงเปิด-ปิดได้ ป้ายบอกสถานะจึงต้องตามเวลาจริง */
+setInterval(renderHours, 60 * 1000);
