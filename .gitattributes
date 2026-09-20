@@ -1,0 +1,21 @@
+# บังคับให้ทุก text file เก็บและ checkout เป็น LF
+# override core.autocrlf=true บน Windows -> ไม่มี warning LF/CRLF อีก
+* text=auto eol=lf
+
+# ไฟล์ที่ต้องคง CRLF (Windows เท่านั้น)
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# ไฟล์ binary - ห้าม Git แตะ line ending และไม่ต้อง diff
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.svg text
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
