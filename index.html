@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>วันนี้กินอะไรดี — แนะนำอาหารไทย</title>
+  <meta name="description" content="สุ่มอาหารไทยสักจานเมื่อคิดไม่ออกว่าวันนี้จะกินอะไร และเก็บจานที่ชอบไว้ในเครื่อง">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <h1>วันนี้กินอะไรดี?</h1>
+    <p class="tagline">กดสุ่มสักจาน แล้วเก็บจานที่ชอบไว้ดูทีหลัง</p>
+    <div class="veg-strip" aria-hidden="true">
+      <img src="assets/veg/krapow.png" alt="" width="64" height="64" loading="lazy" decoding="async">
+      <img src="assets/veg/prik-kee-noo.png" alt="" width="64" height="64" loading="lazy" decoding="async">
+      <img src="assets/veg/pak-boong.png" alt="" width="64" height="64" loading="lazy" decoding="async">
+      <img src="assets/veg/ta-krai.png" alt="" width="64" height="64" loading="lazy" decoding="async">
+      <img src="assets/veg/bai-makrut.png" alt="" width="64" height="64" loading="lazy" decoding="async">
+      <img src="assets/veg/kha.png" alt="" width="64" height="64" loading="lazy" decoding="async">
+      <img src="assets/veg/makhuea-proh.png" alt="" width="64" height="64" loading="lazy" decoding="async">
+      <img src="assets/veg/pak-chee.png" alt="" width="64" height="64" loading="lazy" decoding="async">
+    </div>
+  </header>
+
+  <main>
+    <section class="featured-section" aria-labelledby="featured-heading">
+      <h2 id="featured-heading" class="visually-hidden">จานที่แนะนำ</h2>
+      <div class="featured-card" id="featured" aria-live="polite"></div>
+      <button type="button" class="btn-random" id="random-btn">
+        <img class="btn-icon" src="assets/veg/prik-kee-noo.png" alt="" aria-hidden="true" width="24" height="24" decoding="async"> สุ่มใหม่
+      </button>
+    </section>
+
+    <section class="pool-section" aria-labelledby="pool-heading">
+      <h2 id="pool-heading">เมนูทั้งหมด</h2>
+
+      <div class="filters">
+        <div class="chips" id="chips" role="group" aria-label="กรองตามประเภทอาหาร"></div>
+        <label class="switch">
+          <input type="checkbox" id="fav-only">
+          <span class="switch-track" aria-hidden="true"></span>
+          <span class="switch-label">เฉพาะที่ชอบ</span>
+        </label>
+      </div>
+
+      <ul class="grid" id="grid"></ul>
+      <p class="empty" id="empty" hidden></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p id="footer-note"></p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

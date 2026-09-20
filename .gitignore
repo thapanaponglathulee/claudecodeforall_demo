@@ -1,0 +1,7 @@
+# OS / editor
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# ไฟล์ทดสอบที่ไม่ได้ใช้ในเว็บ
+assets/test-*.png

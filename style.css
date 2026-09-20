@@ -1,0 +1,442 @@
+/* ===== โทนสีและธีม =====
+   ชุดสว่างเป็นค่าตั้งต้น ชุดมืด override ใต้ prefers-color-scheme
+   ไม่มีปุ่มสลับธีม ยึดตามที่ระบบปฏิบัติการบอกมา                    */
+
+:root {
+  --bg: #fff8f1;
+  --surface: #ffffff;
+  --surface-2: #fdf2e7;
+  --text: #2a2119;
+  --muted: #6d6158;
+  --border: #ecdfd0;
+  --accent: #c0410f;
+  --accent-text: #ffffff;
+  --heart: #d81b60;
+  --focus: #1565c0;
+  --shadow: 0 1px 2px rgba(60, 40, 20, .06), 0 6px 20px rgba(60, 40, 20, .07);
+
+  /* สีประจำ Category ใช้กับชิปเล็กเท่านั้น ไม่ใช้เป็นพื้นการ์ดเต็มใบ */
+  --cat-single-bg: #e2eeff;
+  --cat-single-fg: #17497f;
+  --cat-side-bg: #e0f4e4;
+  --cat-side-fg: #1d6431;
+  --cat-yum-bg: #ffe4de;
+  --cat-yum-fg: #952715;
+  --cat-dessert-bg: #f1e6ff;
+  --cat-dessert-fg: #552a88;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16120e;
+    --surface: #221b15;
+    --surface-2: #2c231b;
+    --text: #f4ede5;
+    --muted: #aa9e92;
+    --border: #372d24;
+    --accent: #ff8a5c;
+    --accent-text: #24150d;
+    --heart: #ff7a9c;
+    --focus: #8ab4f8;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 6px 20px rgba(0, 0, 0, .35);
+
+    --cat-single-bg: #16304a;
+    --cat-single-fg: #a9d2ff;
+    --cat-side-bg: #163420;
+    --cat-side-fg: #a2e2b1;
+    --cat-yum-bg: #47211b;
+    --cat-yum-fg: #ffb6a6;
+    --cat-dessert-bg: #2f1f47;
+    --cat-dessert-fg: #dbbcff;
+  }
+}
+
+/* ===== พื้นฐาน ===== */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0 16px 48px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Noto Sans Thai", "Sarabun", "Leelawadee UI", -apple-system,
+               BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.65;
+  overflow-x: hidden;
+}
+
+main, .site-header, .site-footer { max-width: 1000px; margin: 0 auto; }
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ===== หัวเรื่อง ===== */
+
+.site-header { padding: 32px 0 20px; text-align: center; }
+
+.site-header h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 6vw, 2.6rem);
+  letter-spacing: -.01em;
+}
+
+.tagline { margin: 4px 0 0; color: var(--muted); }
+
+/* ===== แถบผักไทยตกแต่ง =====
+   ภาพประกอบล้วน ๆ ไม่สื่อความหมาย จึง aria-hidden ใน markup          */
+
+.veg-strip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(4px, 2vw, 14px);
+  margin-top: 14px;
+}
+
+.veg-strip img {
+  width: clamp(30px, 7vw, 48px);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+@media (prefers-color-scheme: dark) {
+  .veg-strip img { opacity: .88; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .veg-strip img { transition: transform .18s ease; }
+  .veg-strip img:hover { transform: translateY(-3px) scale(1.06); }
+}
+
+/* ===== การ์ด Featured Dish ===== */
+
+.featured-section { text-align: center; }
+
+.featured-card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  padding: 28px 20px 24px;
+  text-align: center;
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+.featured-card.is-swapping { opacity: 0; transform: translateY(6px); }
+
+.featured-emoji {
+  font-size: clamp(3.6rem, 16vw, 5.4rem);
+  line-height: 1.1;
+}
+
+.featured-name {
+  margin: 8px 0 2px;
+  font-size: clamp(1.5rem, 5vw, 2.1rem);
+}
+
+.featured-name-en {
+  margin: 0;
+  color: var(--muted);
+  font-size: .95rem;
+  letter-spacing: .02em;
+}
+
+.featured-desc {
+  margin: 14px auto 12px;
+  max-width: 48ch;
+  color: var(--text);
+}
+
+.featured-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== ปุ่มสุ่ม อยู่ใต้การ์ดเสมอ ===== */
+
+.btn-random {
+  margin: 18px auto 0;
+  display: block;
+  padding: 13px 30px;
+  font: inherit;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--accent-text);
+  background: var(--accent);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform .12s ease, filter .12s ease;
+}
+
+.btn-random .btn-icon {
+  width: 1.4em;
+  height: 1.4em;
+  object-fit: contain;
+  vertical-align: -.32em;
+}
+.btn-random:hover { filter: brightness(1.07); }
+.btn-random:active { transform: translateY(1px) scale(.99); }
+
+/* ===== ตัวกรอง ===== */
+
+.pool-section { margin-top: 44px; }
+
+.pool-section h2 {
+  margin: 0 0 12px;
+  font-size: 1.25rem;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.chip-btn {
+  font: inherit;
+  font-size: .92rem;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.chip-btn[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-size: .95rem;
+}
+
+.switch input {
+  position: absolute;
+  opacity: 0;
+  width: 1px; height: 1px;
+}
+
+.switch-track {
+  width: 44px; height: 25px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  position: relative;
+  transition: background .15s ease, border-color .15s ease;
+}
+
+.switch-track::after {
+  content: "";
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 19px; height: 19px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: transform .15s ease, background .15s ease;
+}
+
+.switch input:checked + .switch-track {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.switch input:checked + .switch-track::after {
+  transform: translateX(19px);
+  background: var(--accent-text);
+}
+
+.switch input:focus-visible + .switch-track {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ===== กริด Pool — mobile-first 1 → 2 → 3 → 4 คอลัมน์ ===== */
+
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 480px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 760px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1000px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+
+.card {
+  position: relative;
+  display: flex;               /* ให้ card-main ยืดเต็มการ์ด การ์ดทุกใบจึงสูงเท่ากัน */
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  transition: border-color .15s ease, transform .12s ease;
+}
+
+.card.is-featured {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent), var(--shadow);
+}
+
+.card-main {
+  /* ปุ่มคลุมทั้งการ์ด: กดที่ไหนก็ได้ยกเว้นหัวใจที่ลอยอยู่ด้านบน */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 18px 14px 16px;
+  font: inherit;
+  color: inherit;
+  text-align: center;
+  background: none;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+.card-main:hover { background: var(--surface-2); }
+
+.card-emoji { font-size: 2.6rem; line-height: 1.2; }
+.card-name { font-weight: 600; font-size: 1.05rem; }
+.card-name-en { color: var(--muted); font-size: .82rem; }
+
+.card-meta {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== ชิป Category ===== */
+
+.chip {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: .78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.chip--single  { background: var(--cat-single-bg);  color: var(--cat-single-fg); }
+.chip--side    { background: var(--cat-side-bg);    color: var(--cat-side-fg); }
+.chip--yum     { background: var(--cat-yum-bg);     color: var(--cat-yum-fg); }
+.chip--dessert { background: var(--cat-dessert-bg); color: var(--cat-dessert-fg); }
+
+.spicy { font-size: .85rem; color: var(--muted); white-space: nowrap; }
+
+/* ===== ปุ่มหัวใจ ===== */
+
+.heart {
+  position: absolute;
+  top: 8px; right: 8px;
+  z-index: 1;
+  width: 40px; height: 40px;
+  display: grid;
+  place-items: center;
+  font-size: 1.3rem;
+  line-height: 1;
+  color: var(--muted);
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform .12s ease, color .12s ease;
+}
+
+.heart:hover { background: var(--surface-2); color: var(--heart); }
+.heart[aria-pressed="true"] { color: var(--heart); }
+.heart[aria-pressed="true"]:active { transform: scale(.85); }
+
+.heart--lg {
+  top: 12px; right: 12px;
+  width: 48px; height: 48px;
+  font-size: 1.7rem;
+}
+
+/* ===== ข้อความตอนผลกรองว่าง ===== */
+
+.empty {
+  margin: 28px auto;
+  padding: 24px 18px;
+  max-width: 44ch;
+  text-align: center;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+}
+
+.empty button {
+  display: block;
+  margin: 12px auto 0;
+  padding: 8px 18px;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+/* ===== ฟุตเตอร์ ===== */
+
+.site-footer {
+  margin-top: 40px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: .85rem;
+  text-align: center;
+}
+
+.site-footer p { margin: 0; }
+
+/* ===== เคารพผู้ใช้ที่ตั้งค่าลดการเคลื่อนไหว ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
