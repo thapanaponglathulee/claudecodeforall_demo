@@ -4,16 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Running the app
 
-No build step, no package manager, no test runner, no dependencies. Three files load
-directly in the browser.
+Vite + Redux Toolkit ไม่มี test runner
 
 ```bash
-start index.html          # เปิดเร็ว ๆ ดูหน้าตา (Windows)
-npx serve .               # ใช้ตอนตรวจงานจริง
+npm install        # ครั้งแรกครั้งเดียว
+npm run dev        # dev server
+npm run build      # ออกไฟล์ลง dist/
 ```
 
-ตรวจงานให้เปิดผ่าน `localhost` ไม่ใช่ `file://` เพราะ `localStorage` ทำงานต่างกันบน
-`file://` (บางเบราว์เซอร์ถือเป็น opaque origin แล้ว throw) ซึ่งเป็นที่เก็บ Order ทั้งหมด
+**เปิด `index.html` ตรง ๆ ไม่ได้แล้ว** ต้องผ่าน dev server เท่านั้น ทั้งเพราะเป็น ES module
+และเพราะ `localStorage` ทำงานต่างกันบน `file://` (บางเบราว์เซอร์ถือเป็น opaque origin
+แล้ว throw) ซึ่งเป็นที่เก็บ Order ทั้งหมด
 
 ไม่มี automated test — รายการตรวจด้วยมืออยู่ใน `task.md`
 
@@ -47,8 +48,23 @@ Recommended, Order, Total, Shop) พร้อมคำที่ตั้งใ�
 
 ## สถาปัตยกรรม
 
-`app.js` เป็นสคริปต์ตัวเดียว ไม่มี module ไม่มี framework รันบน global scope ตรง ๆ
-และผูก event ตอนท้ายไฟล์ ไล่อ่านจากบนลงล่างได้เลย
+```
+src/data/menu.js     MENU, CATEGORIES, SHOP — ข้อมูลดิบทั้งหมด
+src/store/           Redux Toolkit
+  orderSlice.js        รายการที่เลือก + selector คำนวณยอด
+  filtersSlice.js      คำค้น หมวด สวิตช์แนะนำ + selector กรองเมนู
+  uiSlice.js           nav, แผงตะกร้า, preview ที่เปิดอยู่
+  storage.js           อ่าน/เขียน localStorage
+  index.js             configureStore + listener middleware ที่เขียนลงเครื่อง
+src/ui/              ฟังก์ชันวาดหน้าจอ ไม่รู้จัก store
+src/main.js          ผูก store เข้ากับหน้าจอ และผูก event ทั้งหมด
+```
+
+`src/ui/` **ไม่ import store** รับค่าที่ต้องใช้มาเป็นพารามิเตอร์อย่างเดียว ส่วน `main.js`
+เป็นที่เดียวที่ `dispatch` และอ่าน state
+
+**ห้ามเรียก `saveOrder()` เองจากที่อื่น** — listener middleware ใน `store/index.js`
+เขียนลง localStorage ให้แล้วเมื่อมี action ของ order เข้ามา มีที่เขียนลงเครื่องแค่ที่เดียว
 
 **`MENU` คือแหล่งข้อมูลเดียวของทั้งเว็บ** — การค้นหา ตัวกรอง ตัวเลขข้างชื่อหมวด
 และจำนวนเมนูในฟุตเตอร์ ล้วนคำนวณจากอาเรย์นี้ เพิ่มหรือลบเมนูแล้วทุกอย่างตามให้เอง
@@ -62,8 +78,8 @@ Recommended, Order, Total, Shop) พร้อมคำที่ตั้งใ�
 คนอื่น ไม่ใช่ข้อความที่เราพิมพ์เองทั้งหมด จึง **escape ด้วย `esc()` ทุกครั้ง**
 ก่อนแทรกลง HTML
 
-สถานะของหน้าอยู่ในตัวแปร 4 ตัวบนสุดของส่วน "สถานะของหน้า" (`order`, `query`,
-`activeCategory`, `recOnly`) ไม่มี state container
+สถานะทั้งหมดอยู่ใน store ไม่มีตัวแปรสถานะลอย ๆ นอก store เลย ยกเว้น `prev` ใน
+`main.js` ที่เก็บค่ารอบก่อนไว้เทียบว่าต้องวาดอะไรใหม่
 
 ## ข้อตกลงที่ห้ามพังโดยไม่ตั้งใจ
 
@@ -71,9 +87,14 @@ Recommended, Order, Total, Shop) พร้อมคำที่ตั้งใ�
 กับจำนวน เปลี่ยนเมื่อไหร่ Order ที่ค้างไว้หายทันทีและหายเงียบ ๆ แก้ `name` กับ `price`
 ได้ตามสบาย (ADR-0001)
 
-**กดเพิ่ม/ลดจำนวนแล้วต้องไม่เรนเดอร์ลิสต์ใหม่ทั้งหมด** — `changeQty()` เรียก
-`renderCard()` แทนที่จะเรียก `renderMenu()` เพื่อไม่ให้ลิสต์กระโดดใต้นิ้วผู้ใช้
-`renderMenu()` เรียกเฉพาะตอน **ตัวกรองเปลี่ยน** เท่านั้น
+**กดเพิ่ม/ลดจำนวนแล้วต้องไม่เรนเดอร์ลิสต์ใหม่ทั้งหมด** — ข้อนี้เปราะที่สุดในโค้ดเบสนี้
+เพราะ `store.subscribe` ยิงทุก action ตัวที่กันไว้คือ `sync()` ใน `main.js`
+ซึ่งเทียบ `selectVisibleByCategory` ด้วย `!==` ได้ เพราะ `createSelector` คืน
+reference เดิมเมื่อตัวกรองไม่เปลี่ยน ถ้าเปลี่ยนเฉพาะจำนวนจะลงไปวาดแค่การ์ดที่ขยับ
+
+แก้ `sync()` เมื่อไหร่ **ต้องตรวจซ้ำด้วยมือ** ว่ากดเพิ่มจำนวนแล้วมีการ์ดถูกวาดใหม่ใบเดียว
+จริง วิธีตรวจ: ปักหมุด `document.querySelectorAll('.card').forEach((c,i)=>c.__mark=i)`
+กด `+` แล้วนับว่ามีกี่ใบที่ `__mark` หาย ต้องได้ 1
 
 **รูปมีสองขนาด อย่าเดาขนาดที่สาม** — การ์ดใช้ `256x256` กล่อง preview ใช้ `800x0`
 Wongnai เสิร์ฟเฉพาะบางขนาด (`600x600` กับ `960x0` คืน 404) ถ้าจะเปลี่ยนขนาดต้องยิงลองก่อน

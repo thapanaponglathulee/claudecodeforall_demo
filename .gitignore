@@ -8,3 +8,7 @@ assets/test-*.png
 
 # ไฟล์ scratch ที่เกิดจากพิมพ์คำสั่งพลาดในเทอร์มินัล (เก็บไว้ในเครื่อง ไม่ขึ้น repo)
 /code
+
+# npm / Vite
+node_modules/
+dist/

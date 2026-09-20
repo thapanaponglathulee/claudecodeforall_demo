@@ -8,14 +8,21 @@
 
 ## วิธีเปิด
 
-double-click ที่ `index.html` ก็เห็นหน้าเว็บแล้ว ไม่ต้องติดตั้งอะไร ไม่ต้อง build
-
-แต่ถ้าจะ **ตรวจงานจริง** ให้เปิดผ่าน localhost เพราะ `localStorage` ทำงานไม่เหมือนกันบน `file://`
-ซึ่งเป็นที่เก็บรายการที่เลือกไว้ทั้งหมด
+โปรเจกต์นี้ใช้ Redux Toolkit ซึ่งโหลดผ่าน `<script>` ตรง ๆ ไม่ได้ จึงต้องติดตั้งก่อนหนึ่งครั้ง
 
 ```bash
-npx serve .          # หรือเซิร์ฟเวอร์ static ตัวไหนก็ได้
+npm install
+npm run dev        # เปิด dev server พร้อม hot reload
 ```
+
+| คำสั่ง | ทำอะไร |
+|---|---|
+| `npm run dev` | dev server สำหรับทำงานและตรวจงาน |
+| `npm run build` | สร้างไฟล์สำหรับ deploy ลง `dist/` |
+| `npm run preview` | เปิดดูผลของ `build` ก่อนเอาขึ้นจริง |
+
+double-click ที่ `index.html` **ใช้ไม่ได้แล้ว** ตั้งแต่ย้ายมาใช้ Redux Toolkit
+(ดู [ADR-0003](./docs/adr/0003-redux-toolkit-with-vite.md))
 
 ## ไฟล์ในโปรเจกต์
 
@@ -23,7 +30,10 @@ npx serve .          # หรือเซิร์ฟเวอร์ static ต�
 |---|---|
 | `index.html` | โครงหน้า |
 | `style.css` | หน้าตาทั้งหมด อิง `DESIGN.md` |
-| `app.js` | ข้อมูลเมนู (`MENU`) และการทำงานทั้งหมด |
+| `src/data/menu.js` | ข้อมูลเมนู (`MENU`) และข้อมูลร้าน (`SHOP`) |
+| `src/store/` | Redux Toolkit — order, filters, ui และการเขียนลงเครื่อง |
+| `src/ui/` | ฟังก์ชันวาดหน้าจอ |
+| `src/main.js` | ผูก store เข้ากับหน้าจอ และผูก event |
 | `CONTEXT.md` | คำศัพท์ที่ใช้ร่วมกันในโปรเจกต์ |
 | `CLAUDE.md` | คู่มือสำหรับ Claude Code |
 | `DESIGN.md` | style reference ที่หน้าตาของเว็บอ้างอิงทั้งหมด |
@@ -51,7 +61,7 @@ npx serve .          # หรือเซิร์ฟเวอร์ static ต�
 
 ## วิธีอัปเดตเมนู
 
-เปิด `app.js` แล้วแก้ในอาเรย์ `MENU`:
+เปิด `src/data/menu.js` แล้วแก้ในอาเรย์ `MENU`:
 
 ```js
 { slug: "tom-yum-kung", name: "ต้มยำกุ้ง", price: 120, cat: "kabkhao",
