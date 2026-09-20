@@ -1,5 +1,5 @@
 import { els } from './dom.js';
-import { esc, baht, emojiFor, imgHtml, thumbHtml, qtyHtml, labelHtml } from './helpers.js';
+import { esc, baht, emojiFor, imgHtml, thumbHtml, qtyHtml } from './helpers.js';
 import {
   MENU, CATEGORIES, CATEGORY_LABEL, CATEGORY_NOTE, SHOP, BY_SLUG,
   IMG_PREVIEW_BASE, ORDER_URL, HERO_PHOTO,
@@ -27,8 +27,7 @@ function sectionHtml(cat, dishes, items) {
   const note = CATEGORY_NOTE[cat.key];
   return '<section class="cat-block" id="cat-' + esc(cat.key) + '">' +
     '<div class="cat-head">' +
-      labelHtml(cat) +
-      '<h3 class="heading">' + esc(cat.label) + '</h3>' +
+      '<h3 class="label">' + esc(cat.word.join(' ')) + ' / ' + esc(cat.label) + '</h3>' +
       '<p class="cat-note">' + dishes.length + ' รายการ' +
         (note ? ' · ' + esc(note) : '') + '</p>' +
     '</div>' +
@@ -140,19 +139,18 @@ export function syncChips(activeCategory) {
   });
 }
 
-/* ===== เมนูลัดไปแต่ละหมวด ===== */
-
-export function renderNav() {
-  els.navList.innerHTML = CATEGORIES.map((c) =>
-    '<li><a href="#cat-' + esc(c.key) + '">' + esc(c.word.join(' ')) + '</a></li>'
-  ).join('');
+export function renderBagCount(count) {
+  els.bagCount.textContent = count;
 }
 
-/* แถบ nav ลอยอยู่บนภาพ hero จนเลื่อนพ้น แล้วกลายเป็นแถบขาวของหน้า
- * ตัวอักษรบนภาพต้องเป็นขาวล้วน ไม่งั้นไม่รอดคอนทราสต์ของรูป */
-export function syncNavSolid() {
-  const past = window.scrollY > window.innerHeight - 80;
-  els.nav.classList.toggle('is-solid', past);
+/* ===== แถบ nav ===== */
+
+/* ระบบนี้สลับสีตัวอักษรตามความสว่างของพื้นหลัง ไม่ใช่ตามธีม
+ * อยู่บนภาพ = ขาว พ้นภาพแล้วพื้นเป็น bone = ดำ */
+export function syncNavLight() {
+  const hero = document.querySelector('.hero');
+  const past = window.scrollY > hero.offsetTop + hero.offsetHeight - 40;
+  els.nav.classList.toggle('is-light', past);
 }
 
 /* ===== ข้อมูลร้าน ===== */
@@ -168,10 +166,9 @@ export function isOpenNow(now) {
 
 export function renderHours() {
   const open = isOpenNow(new Date());
-  els.hoursText.textContent = open
-    ? 'เปิดอยู่ ปิด ' + SHOP.closeHour + ':00'
-    : 'ปิดอยู่ เปิด 0' + SHOP.openHour + ':00';
-  els.hoursDot.classList.toggle('dot--closed', !open);
+  els.announce.textContent = SHOP.name + ' — ' +
+    (open ? 'เปิดอยู่ ปิด ' + SHOP.closeHour + ':00' : 'ปิดอยู่ เปิด 0' + SHOP.openHour + ':00') +
+    ' · สั่งเดลิเวอรี่ได้ถึง ' + SHOP.deliveryClose;
 }
 
 export function renderShop() {

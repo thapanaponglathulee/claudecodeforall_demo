@@ -20,8 +20,10 @@ export const els = {
   orderLink2: id('order-link-2'),
 
   nav: id('nav'),
-  navList: id('nav-list'),
   heroPhoto: id('hero-photo'),
+  announce: id('announce'),
+  bagCount: id('bag-count'),
+  bootWarning: id('boot-warning'),
 
   preview: id('preview'),
   previewClose: id('preview-close'),
@@ -32,8 +34,6 @@ export const els = {
   previewPrice: id('preview-price'),
   previewQty: id('preview-qty'),
 
-  hoursText: id('hours-text'),
-  hoursDot: id('hours-dot'),
   shopPhones: id('shop-phones'),
   mapLink: id('map-link'),
   footerNote: id('footer-note'),
